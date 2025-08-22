@@ -1,0 +1,23 @@
+.nav {
+    height: 55px;
+}
+
+.full-body-container {
+    height: calc(100vh - 55px);
+}
+
+.body-container {
+    height: calc(100vh - 110px);
+}
+
+.sub-body-container {
+    height: calc(100vh - 165px);
+}
+
+.sub2-body-container {
+    height: calc(100vh - 220px);
+}
+
+.pageGap {
+    padding: 2rem;
+}

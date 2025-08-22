@@ -1,10 +1,9 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { getApp, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 import { getStorage } from "firebase/storage";
-import { getApp } from "firebase/app";
-import { getFunctions, httpsCallable } from "firebase/functions";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 
@@ -24,7 +23,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(getApp());
-const createOrder = httpsCallable(functions, "createOrder");
-const verifyPayment = httpsCallable(functions, "verifyPayment");
 
-export { app, auth, db, storage, verifyPayment, createOrder, functions };
+export { app, auth, db, functions, storage };
+

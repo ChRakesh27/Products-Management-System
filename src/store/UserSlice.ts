@@ -29,6 +29,7 @@ interface UserState {
   selectedCompanyIndex: number;
   asStaffSelectedCompanyIndex: number;
   isLogin: boolean;
+  siteName: String;
   asCompanies: Company[];
   asCustomer: any; // Replace with proper type if known
   asVendor: any;
@@ -51,16 +52,18 @@ const defaultState: UserState = {
   asCustomer: null,
   asVendor: null,
   asStaff: null,
+  siteName: ""
 };
 
 let initialState: UserState = defaultState;
 
 try {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
+  const loginData = JSON.parse(storedUser)
+  if (storedUser && loginData.siteName == "prod-mang-sys") {
     initialState = {
       ...defaultState,
-      ...JSON.parse(storedUser),
+      ...loginData,
       isLogin: true,
     };
   }
@@ -76,6 +79,7 @@ const userSlice = createSlice({
     setUserLogin: (state, action) => {
       Object.assign(state, action.payload);
       state.isLogin = true;
+      state.siteName = "prod-mang-sys";
       localStorage.setItem("user", JSON.stringify(state));
     },
 

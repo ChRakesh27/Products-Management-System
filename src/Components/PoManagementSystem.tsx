@@ -141,9 +141,11 @@ const PurchaseOrderManagement = () => {
     (sum, po) => sum + po.totalAmount,
     0
   );
+
   const pendingCount = purchaseOrders.filter(
     (po) => po.status === "pending"
   ).length;
+
   const receivedCount = purchaseOrders.filter(
     (po) => po.status === "received"
   ).length;
@@ -280,7 +282,7 @@ const PurchaseOrderManagement = () => {
               onClick={() => setShowPODetails(null)}
               className="text-gray-400 hover:text-gray-600"
             >
-              ×
+              x
             </button>
           </div>
 

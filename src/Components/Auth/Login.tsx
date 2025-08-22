@@ -2,8 +2,6 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import {
   collection,
   doc,
-  type DocumentData,
-  DocumentReference,
   getDoc,
   getDocs,
   query,
@@ -16,11 +14,14 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../../assets/loginImg.jpg";
-import SunyaLogo from "../../assets/techLogo.jpg";
+import SunyaLogo from "../../assets/SunyaLogo.jpg";
 import updatedSingleDataCompanyDetails from "../../Constants/updatedCompanyDetails";
 import { useLoading } from "../../context/LoadingContext";
 import { auth, db } from "../../firebase";
 import { setUserLogin } from "../../store/UserSlice";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import ToastMSG from "../ui/Toaster";
 import CompanyForm from "./CompanyForm";
 
@@ -36,9 +37,7 @@ const Login = () => {
   const [isOtpStage, setIsOtpStage] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
-
-  const [userDocRef, setUserDocRef] =
-    useState<DocumentReference<DocumentData> | null>(null);
+  const [userDocRef, setUserDocRef] = useState(null);
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [isResendAllowed, setIsResendAllowed] = useState(false);
@@ -90,39 +89,40 @@ const Login = () => {
   };
 
   const handlePhoneNumberSubmit = async () => {
-    setLoading(true);
-    if (phoneNumber) {
-      const userRef = collection(db, "users");
-      const q = query(userRef, where("phone", "==", phoneNumber));
-      const userData = await getDocs(q);
-      if (userData.docs.length != 0) {
-        setIsLogin(true);
-      } else {
-        setIsLogin(false);
-      }
-      configureRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      try {
-        const authResult = await signInWithPhoneNumber(
-          auth,
-          `+91${phoneNumber}`, // Replace with your country code
-          appVerifier
-        );
-        setConfirmationResult(authResult);
-        setIsOtpStage(true);
-        setCountdown(60);
-        setIsResendAllowed(false);
-      } catch (error) {
-        console.error("Error during phone number sign-in:", error);
-        ToastMSG(
-          "error",
-          `Failed to send OTP. Please check the number or try again.`
-        );
-      } finally {
-        setLoading(false);
-      }
-    } else {
+    if (!phoneNumber) {
       ToastMSG("error", `Please enter a valid phone number.`);
+      return;
+    }
+    setLoading(true);
+
+    const userRef = collection(db, "users");
+    const q = query(userRef, where("phone", "==", phoneNumber));
+    const userData = await getDocs(q);
+    if (userData.docs.length != 0) {
+      setIsLogin(true);
+    } else {
+      setIsLogin(false);
+    }
+    configureRecaptcha();
+    const appVerifier = window.recaptchaVerifier;
+    try {
+      const authResult = await signInWithPhoneNumber(
+        auth,
+        `+91${phoneNumber}`, // Replace with your country code
+        appVerifier
+      );
+      setConfirmationResult(authResult);
+      setIsOtpStage(true);
+      setCountdown(60);
+      setIsResendAllowed(false);
+    } catch (error) {
+      console.error("Error during phone number sign-in:", error);
+      ToastMSG(
+        "error",
+        `Failed to send OTP. Please check the number or try again.`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -265,11 +265,6 @@ const Login = () => {
 
   return (
     <div className="h-screen">
-      {/* <nav className="text-white py-3 w-full ">
-        <div className="  flex justify-between  items-center px-4">
-          <div className="text-2xl font-bold text-blue-600">Sunya</div>
-        </div>
-      </nav> */}
       <div className="bg-gray-100 flex justify-center items-center h-screen ">
         {!isCompanyProfileDone ? (
           <CompanyForm userRef={userDocRef} />
@@ -285,9 +280,6 @@ const Login = () => {
                     <div className="w-full  xl:w-[480px]  relative z-20">
                       <div className="max-w-lg w-full h-auto ">
                         <div className="py-5 w-full  rounded-lg  p-3">
-                          {/* <div className="text-center mb-3 text-3xl font-bold py-3 text-[hsl(250,92%,70%)]">
-                            Sunya
-                          </div> */}
                           <div className=" pt-5">
                             <img
                               src={SunyaLogo}
@@ -305,25 +297,24 @@ const Login = () => {
                             <div className="h-80 overflow-y-auto pt-14">
                               <div>
                                 <div className="w-full">
-                                  <h2 className="text-1xl text-grey-500 mb-2">
+                                  <Label className="text-1xl text-grey-500 mb-2">
                                     Phone
-                                  </h2>
+                                  </Label>
                                   <div className="flex items-center mb-4">
-                                    <span className="px-3 py-3 border border-r-0 rounded-l-md text-gray-700">
+                                    <span className="px-3 py-[5px] border border-r-0 rounded-l-md text-gray-700">
                                       +91
                                     </span>
-                                    <input
+                                    <Input
                                       type="text"
                                       maxLength={10}
+                                      name="phone"
                                       placeholder="Enter your Phone number"
                                       value={phoneNumber}
                                       onChange={handlePhoneNumberChange}
-                                      className={
-                                        "px-4 py-3 border w-full focus:outline-none " +
-                                        (isOtpStage ? " " : " rounded-r-md")
-                                      }
+                                      className="rounded-s-none"
                                       required
                                     />
+
                                     {isOtpStage && (
                                       <button
                                         type="button"
@@ -338,29 +329,28 @@ const Login = () => {
                               </div>
                               {isOtpStage && (
                                 <div>
-                                  <h2 className="text-xl text-grey-500 mb-2">
+                                  <Label className="text-xl text-grey-500 mb-2">
                                     Enter OTP
-                                  </h2>
-                                  <input
+                                  </Label>
+                                  <Input
                                     type="text"
                                     placeholder="Enter OTP"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
-                                    className="px-4 py-3 border rounded-md w-full mb-4"
                                   />
                                 </div>
                               )}
                             </div>
                             {isOtpStage ? (
                               <>
-                                <button
+                                <Button
                                   className={
                                     "btn-add text-base py-3 w-full mb-10  "
                                   }
                                   onClick={handleOtpSubmit}
                                 >
                                   Verify OTP
-                                </button>
+                                </Button>
 
                                 <div className="text-sm text-gray-500 mt-3">
                                   {countdown > 0
@@ -368,23 +358,23 @@ const Login = () => {
                                     : ""}
                                 </div>
                                 {countdown === 0 && (
-                                  <button
+                                  <Button
                                     className="mt-2 text-blue-500 underline"
                                     onClick={handleResendOtp}
                                   >
                                     Resend OTP
-                                  </button>
+                                  </Button>
                                 )}
                               </>
                             ) : (
-                              <button
+                              <Button
                                 className={
                                   "btn-add text-base py-3 w-full mb-10  "
                                 }
                                 onClick={handlePhoneNumberSubmit}
                               >
                                 Submit
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>

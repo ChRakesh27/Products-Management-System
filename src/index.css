@@ -152,4 +152,13 @@
     @apply p-6 bg-gray-50 overflow-y-auto;
   }
 
+
+
+  .form-field-space {
+    @apply space-y-2;
+  }
+
+  .form-space {
+    @apply space-y-4;
+  }
 }

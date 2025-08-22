@@ -1,7 +1,6 @@
 import {
   Activity,
   BarChart3,
-  Bell,
   Calendar,
   CheckCircle,
   Circle,
@@ -13,7 +12,6 @@ import {
   Play,
   Plus,
   Search,
-  Settings,
   StopCircle,
   Trash2,
 } from "lucide-react";
@@ -347,7 +345,7 @@ const DailyUsageManagement = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
-        return "text-gray-600 bg-gray-100";
+        return " bg-gray-100";
       case "in-progress":
         return "text-blue-600 bg-blue-100";
       case "paused":
@@ -357,14 +355,14 @@ const DailyUsageManagement = () => {
       case "cancelled":
         return "text-red-600 bg-red-100";
       default:
-        return "text-gray-600 bg-gray-100";
+        return " bg-gray-100";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "pending":
-        return <Clock className="w-4 h-4 text-gray-600" />;
+        return <Clock className="w-4 h-4 " />;
       case "in-progress":
         return <Play className="w-4 h-4 text-blue-600" />;
       case "paused":
@@ -374,7 +372,7 @@ const DailyUsageManagement = () => {
       case "cancelled":
         return <StopCircle className="w-4 h-4 text-red-600" />;
       default:
-        return <Circle className="w-4 h-4 text-gray-400" />;
+        return <Circle className="w-4 h-4 " />;
     }
   };
 
@@ -389,7 +387,7 @@ const DailyUsageManagement = () => {
             <h3 className="text-lg font-semibold">Production Batch Details</h3>
             <button
               onClick={() => setShowUsageDetails(null)}
-              className="text-gray-400 hover:text-gray-600"
+              className=" hover:"
             >
               ×
             </button>
@@ -398,45 +396,31 @@ const DailyUsageManagement = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium ">
                   Batch Number
                 </label>
-                <p className="text-sm text-gray-900">
-                  {showUsageDetails.batchNumber}
-                </p>
+                <p className="text-sm ">{showUsageDetails.batchNumber}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Department
-                </label>
-                <p className="text-sm text-gray-900">
-                  {showUsageDetails.department}
-                </p>
+                <label className="block text-sm font-medium ">Department</label>
+                <p className="text-sm ">{showUsageDetails.department}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Supervisor
-                </label>
-                <p className="text-sm text-gray-900">
-                  {showUsageDetails.supervisor}
-                </p>
+                <label className="block text-sm font-medium ">Supervisor</label>
+                <p className="text-sm ">{showUsageDetails.supervisor}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium ">
                   Production Date
                 </label>
-                <p className="text-sm text-gray-900">
-                  {showUsageDetails.productionDate}
-                </p>
+                <p className="text-sm ">{showUsageDetails.productionDate}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Time
-                </label>
-                <p className="text-sm text-gray-900">
+                <label className="block text-sm font-medium ">Time</label>
+                <p className="text-sm ">
                   {showUsageDetails.startTime} -{" "}
                   {showUsageDetails.endTime || "Ongoing"}
                 </p>
@@ -444,9 +428,7 @@ const DailyUsageManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
+              <label className="block text-sm font-medium  mb-2">Status</label>
               <div className="flex items-center gap-4">
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
@@ -465,7 +447,7 @@ const DailyUsageManagement = () => {
                       status: e.target.value,
                     });
                   }}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1 border  rounded-md text-sm"
                 >
                   <option value="pending">Pending</option>
                   <option value="in-progress">In Progress</option>
@@ -478,15 +460,15 @@ const DailyUsageManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium ">
                   Target Output
                 </label>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm ">
                   {showUsageDetails.targetOutput} units
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium ">
                   Actual Output
                 </label>
                 <input
@@ -499,25 +481,25 @@ const DailyUsageManagement = () => {
                       actualOutput: parseInt(e.target.value) || 0,
                     });
                   }}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm w-24"
+                  className="px-3 py-1 border  rounded-md text-sm w-24"
                 />
-                <span className="text-sm text-gray-600 ml-2">units</span>
+                <span className="text-sm  ml-2">units</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Items Usage
               </label>
               <div className="bg-gray-50 rounded-lg p-4">
                 {showUsageDetails.items.map((item, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
+                    className="flex justify-between items-center py-2 border-b  last:border-0"
                   >
                     <div>
                       <p className="font-medium">{item.itemName}</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm ">
                         Available:{" "}
                         {availableItems.find((ai) => ai.id === item.itemId)
                           ?.currentStock || 0}{" "}
@@ -535,10 +517,10 @@ const DailyUsageManagement = () => {
                             e.target.value
                           )
                         }
-                        className="px-2 py-1 border border-gray-300 rounded text-sm w-20"
+                        className="px-2 py-1 border  rounded text-sm w-20"
                         min="0"
                       />
-                      <span className="text-sm text-gray-600">{item.unit}</span>
+                      <span className="text-sm ">{item.unit}</span>
                     </div>
                   </div>
                 ))}
@@ -546,10 +528,8 @@ const DailyUsageManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Notes
-              </label>
-              <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">
+              <label className="block text-sm font-medium ">Notes</label>
+              <p className="text-sm  bg-gray-50 p-3 rounded">
                 {showUsageDetails.notes || "No notes"}
               </p>
             </div>
@@ -557,9 +537,7 @@ const DailyUsageManagement = () => {
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Efficiency:
-                  </span>
+                  <span className="text-sm font-medium ">Efficiency:</span>
                   <span className="ml-2 text-lg font-semibold text-blue-600">
                     {showUsageDetails.targetOutput > 0
                       ? Math.round(
@@ -572,9 +550,7 @@ const DailyUsageManagement = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Status:
-                  </span>
+                  <span className="text-sm font-medium ">Status:</span>
                   <span className="ml-2 text-sm font-medium">
                     {showUsageDetails.actualOutput}/
                     {showUsageDetails.targetOutput} units
@@ -593,15 +569,15 @@ const DailyUsageManagement = () => {
     if (!showNewUsageModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+        <div className=" rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <h3 className="text-lg font-semibold mb-4">
             Create New Production Batch
           </h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Department
                 </label>
                 <select
@@ -612,7 +588,7 @@ const DailyUsageManagement = () => {
                       department: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Assembly">Assembly</option>
                   <option value="Manufacturing">Manufacturing</option>
@@ -622,7 +598,7 @@ const DailyUsageManagement = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Supervisor
                 </label>
                 <input
@@ -634,7 +610,7 @@ const DailyUsageManagement = () => {
                       supervisor: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter supervisor name"
                 />
               </div>
@@ -642,7 +618,7 @@ const DailyUsageManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Target Output
                 </label>
                 <input
@@ -654,12 +630,12 @@ const DailyUsageManagement = () => {
                       targetOutput: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Expected units to produce"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Start Time
                 </label>
                 <input
@@ -671,14 +647,14 @@ const DailyUsageManagement = () => {
                       startTime: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium ">
                   Items to Use
                 </label>
                 <button
@@ -699,7 +675,7 @@ const DailyUsageManagement = () => {
                       onChange={(e) =>
                         updateUsageItem(index, "itemId", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select item</option>
                       {availableItems.map((availableItem) => (
@@ -717,7 +693,7 @@ const DailyUsageManagement = () => {
                       onChange={(e) =>
                         updateUsageItem(index, "quantityUsed", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Qty"
                       disabled
                     />
@@ -737,15 +713,13 @@ const DailyUsageManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
-              </label>
+              <label className="block text-sm font-medium  mb-1">Notes</label>
               <textarea
                 value={newUsageForm.notes}
                 onChange={(e) =>
                   setNewUsageForm({ ...newUsageForm, notes: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Production notes, special instructions, etc."
               />
@@ -754,7 +728,7 @@ const DailyUsageManagement = () => {
             <div className="flex justify-end gap-3 pt-4">
               <button
                 onClick={() => setShowNewUsageModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2  border  rounded-md hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -773,25 +747,25 @@ const DailyUsageManagement = () => {
 
   // Usage Card Component
   const UsageCard = ({ usage }) => (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div className=" p-4 rounded-lg shadow-sm border  hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-gray-900">{usage.batchNumber}</h4>
+        <h4 className="font-medium ">{usage.batchNumber}</h4>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowUsageDetails(usage)}
-            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            className="p-1  hover:text-blue-600 transition-colors"
           >
             <Eye className="w-4 h-4" />
           </button>
           <button
             onClick={() => deleteUsage(usage.id)}
-            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+            className="p-1  hover:text-red-600 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
-      <p className="text-sm text-gray-600 mb-3">
+      <p className="text-sm  mb-3">
         {usage.department} • {usage.supervisor}
       </p>
       <div className="flex items-center justify-between mb-3">
@@ -806,11 +780,11 @@ const DailyUsageManagement = () => {
           </span>
           {getStatusIcon(usage.status)}
         </div>
-        <div className="text-sm font-medium text-gray-900">
+        <div className="text-sm font-medium ">
           {usage.actualOutput}/{usage.targetOutput} units
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs ">
         <div>
           {usage.startTime} - {usage.endTime || "Ongoing"}
         </div>
@@ -820,32 +794,26 @@ const DailyUsageManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="border-b  px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold ">
               Daily Usage & Production Management
             </h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 " />
               <input
                 type="text"
                 placeholder="Search batches..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pl-10 pr-4 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-md">
-              <Bell className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-md">
-              <Settings className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
@@ -853,13 +821,11 @@ const DailyUsageManagement = () => {
       {/* Main Content */}
       <div className="px-6 py-6">
         {/* Production Overview */}
-        <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
+        <div className=" rounded-lg p-6 mb-6 shadow-sm border ">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="w-4 h-4 rounded-full bg-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">
-                Production Overview
-              </h2>
+              <h2 className="text-xl font-semibold ">Production Overview</h2>
             </div>
           </div>
 
@@ -867,21 +833,15 @@ const DailyUsageManagement = () => {
           <div className="grid grid-cols-4 gap-4 pt-4">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
-                <Factory className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-500">
-                  Total Batches
-                </span>
+                <Factory className="w-4 h-4 " />
+                <span className="text-sm font-medium ">Total Batches</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">
-                {totalBatches}
-              </span>
+              <span className="text-lg font-semibold ">{totalBatches}</span>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Activity className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-medium text-gray-500">
-                  Active
-                </span>
+                <span className="text-sm font-medium ">Active</span>
               </div>
               <span className="text-lg font-semibold text-blue-600">
                 {activeBatches}
@@ -890,9 +850,7 @@ const DailyUsageManagement = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-gray-500">
-                  Completed Today
-                </span>
+                <span className="text-sm font-medium ">Completed Today</span>
               </div>
               <span className="text-lg font-semibold text-green-600">
                 {completedToday}
@@ -901,9 +859,7 @@ const DailyUsageManagement = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <BarChart3 className="w-4 h-4 text-purple-500" />
-                <span className="text-sm font-medium text-gray-500">
-                  Output Today
-                </span>
+                <span className="text-sm font-medium ">Output Today</span>
               </div>
               <span className="text-lg font-semibold text-purple-600">
                 {totalOutputToday}
@@ -915,13 +871,13 @@ const DailyUsageManagement = () => {
         {/* Controls */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1 dark:bg-slate-900">
               <button
                 onClick={() => setCurrentView("grid")}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   currentView === "grid"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-white  shadow-sm dark:bg-black  border "
+                    : " "
                 }`}
               >
                 Grid
@@ -930,19 +886,19 @@ const DailyUsageManagement = () => {
                 onClick={() => setCurrentView("list")}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   currentView === "list"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-white  shadow-sm dark:bg-black  border"
+                    : ""
                 }`}
               >
                 List
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+              <Filter className="w-4 h-4 " />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -953,12 +909,12 @@ const DailyUsageManagement = () => {
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4 " />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -980,7 +936,7 @@ const DailyUsageManagement = () => {
               </div>
             ))}
             {filteredRecords.length === 0 && (
-              <div className="col-span-full text-center py-12 text-gray-500">
+              <div className="col-span-full text-center py-12 ">
                 No production batches found.{" "}
                 {searchTerm && `Try adjusting your search for "${searchTerm}".`}
               </div>
@@ -990,9 +946,9 @@ const DailyUsageManagement = () => {
 
         {/* List View */}
         {currentView === "list" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-500">
+          <div className=" rounded-lg shadow-sm border ">
+            <div className="px-6 py-4 border-b ">
+              <div className="grid grid-cols-12 gap-4 text-sm font-medium ">
                 <div className="col-span-2">Batch</div>
                 <div className="col-span-2">Department</div>
                 <div className="col-span-2">Status</div>
@@ -1003,25 +959,22 @@ const DailyUsageManagement = () => {
             </div>
             <div className="divide-y divide-gray-200">
               {filteredRecords.map((usage) => (
-                <div key={usage.id} className="px-6 py-4 hover:bg-gray-50">
+                <div
+                  key={usage.id}
+                  className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-black"
+                >
                   <div className="grid grid-cols-12 gap-4 items-center">
                     <div className="col-span-2">
                       <div className="flex items-center gap-3">
                         {getStatusIcon(usage.status)}
                         <div>
-                          <h4 className="font-medium text-gray-900">
-                            {usage.batchNumber}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {usage.supervisor}
-                          </p>
+                          <h4 className="font-medium ">{usage.batchNumber}</h4>
+                          <p className="text-sm ">{usage.supervisor}</p>
                         </div>
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-sm text-gray-900">
-                        {usage.department}
-                      </span>
+                      <span className="text-sm ">{usage.department}</span>
                     </div>
                     <div className="col-span-2">
                       <span
@@ -1034,26 +987,24 @@ const DailyUsageManagement = () => {
                       </span>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-sm text-gray-900">
+                      <span className="text-sm ">
                         {usage.actualOutput}/{usage.targetOutput}
                       </span>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-sm text-gray-900">
-                        {usage.productionDate}
-                      </span>
+                      <span className="text-sm ">{usage.productionDate}</span>
                     </div>
                     <div className="col-span-2">
                       <div className="flex gap-2">
                         <button
                           onClick={() => setShowUsageDetails(usage)}
-                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                          className="p-1  hover:text-blue-600 transition-colors"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => deleteUsage(usage.id)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-1  hover:text-red-600 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1063,7 +1014,7 @@ const DailyUsageManagement = () => {
                 </div>
               ))}
               {filteredRecords.length === 0 && (
-                <div className="px-6 py-12 text-center text-gray-500">
+                <div className="px-6 py-12 text-center ">
                   No production batches found.{" "}
                   {searchTerm &&
                     `Try adjusting your search for "${searchTerm}".`}
