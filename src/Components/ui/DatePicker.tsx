@@ -29,7 +29,16 @@ export function DatePicker({ date = undefined, setDate, className = "" }) {
           selected={date}
           captionLayout="dropdown"
           onSelect={(date) => {
-            setDate(date);
+            if (!date) {
+              return;
+            }
+            const d =
+              date.getFullYear() +
+              "-" +
+              String(date.getMonth() + 1).padStart(2, "0") +
+              "-" +
+              String(date.getDate()).padStart(2, "0");
+            setDate(d);
             setOpen(false);
           }}
         />

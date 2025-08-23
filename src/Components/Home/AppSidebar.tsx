@@ -19,8 +19,8 @@ const items = [
     icon: Home,
   },
   {
-    title: "Items",
-    url: "/products",
+    title: "Materials",
+    url: "/materials",
     icon: Calendar,
   },
   {
@@ -33,10 +33,9 @@ const items = [
     url: "/production",
     icon: Inbox,
   },
-
   {
     title: "Supplier",
-    url: "/supplier",
+    url: "/vendors",
     icon: User,
   },
 ];

@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import ManufactureHome from "../Manufacture/ManufactureHome";
 import POManagement from "../POManagement/POManagement";
 import SetPo from "../POManagement/SetPo";
 import ProductsList from "../Products/ProductsList";
 import { ProductView } from "../Products/productView";
 import SetProduct from "../Products/SetProduct";
 import { SidebarProvider } from "../ui/sidebar";
+import { VendorList } from "../Vendor/VendorList";
+import { VendorUpsert } from "../Vendor/VendorUpsert";
+import { VendorView } from "../Vendor/VendorView";
 import { AppSidebar } from "./AppSidebar";
-import Manufacture from "./Manufacture";
 import Navbar from "./Navbar";
 import PoView from "./PoView";
 import Production from "./Production";
@@ -34,11 +37,15 @@ function Home() {
               <Route path="/po/create" element={<SetPo />} />
               <Route path="/po/edit/:id" element={<SetPo />} />
               <Route path="/production" element={<Production />} />
-              <Route path="/products" element={<ProductsList />} />
-              <Route path="/products/new" element={<SetProduct />} />
-              <Route path="/products/:id" element={<ProductView />} />
-              <Route path="/products/:id/edit" element={<SetProduct />} />
-              <Route path="/input" element={<Manufacture />} />
+              <Route path="/materials" element={<ProductsList />} />
+              <Route path="/materials/new" element={<SetProduct />} />
+              <Route path="/materials/:id" element={<ProductView />} />
+              <Route path="/materials/:id/edit" element={<SetProduct />} />
+              <Route path="/input" element={<ManufactureHome />} />
+              <Route path="/vendors" element={<VendorList />} />
+              <Route path="/vendors/new" element={<VendorUpsert />} />
+              <Route path="/vendors/:id" element={<VendorView />} />
+              <Route path="/vendors/:id/edit" element={<VendorUpsert />} />
             </Routes>
           </div>
         </main>
