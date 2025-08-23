@@ -3,9 +3,12 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import ManufactureHome from "../Manufacture/ManufactureHome";
 import POManagement from "../POManagement/POManagement";
 import SetPo from "../POManagement/SetPo";
-import ProductsList from "../Products/ProductsList";
-import { ProductView } from "../Products/productView";
+import Products from "../Products/Products";
+import ProductView from "../Products/ProductView";
 import SetProduct from "../Products/SetProduct";
+import RawMaterialsList from "../RawMaterials/RawMaterialsList";
+import { RawMaterialView } from "../RawMaterials/RawMaterialView";
+import SetRawMaterial from "../RawMaterials/SetRawMaterial";
 import { SidebarProvider } from "../ui/sidebar";
 import { VendorList } from "../Vendor/VendorList";
 import { VendorUpsert } from "../Vendor/VendorUpsert";
@@ -37,10 +40,14 @@ function Home() {
               <Route path="/po/create" element={<SetPo />} />
               <Route path="/po/edit/:id" element={<SetPo />} />
               <Route path="/production" element={<Production />} />
-              <Route path="/materials" element={<ProductsList />} />
-              <Route path="/materials/new" element={<SetProduct />} />
-              <Route path="/materials/:id" element={<ProductView />} />
-              <Route path="/materials/:id/edit" element={<SetProduct />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/products/new" element={<SetProduct />} />
+              <Route path="/products/:id" element={<ProductView />} />
+              <Route path="/products/:id/edit" element={<SetProduct />} />
+              <Route path="/materials" element={<RawMaterialsList />} />
+              <Route path="/materials/new" element={<SetRawMaterial />} />
+              <Route path="/materials/:id" element={<RawMaterialView />} />
+              <Route path="/materials/:id/edit" element={<SetRawMaterial />} />
               <Route path="/input" element={<ManufactureHome />} />
               <Route path="/vendors" element={<VendorList />} />
               <Route path="/vendors/new" element={<VendorUpsert />} />

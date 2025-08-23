@@ -1,107 +1,104 @@
-import { ArrowLeft, Pencil } from "lucide-react";
+// pages/products/ProductViewPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { productsAPI } from "../../Api/firebaseProducts";
-import type { productModel } from "../../Model/Product";
+import type { ProductModel } from "../../Model/ProductModel";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { currency, sumProduct } from "./ProductsList";
 
-export function ProductView() {
-  const nav = useNavigate();
+type PDoc = ProductModel & { id: string; totalAmount: number };
+
+export default function ProductView() {
   const { id } = useParams();
-  const [item, setItem] = useState<productModel | null>(null);
+  const [item, setItem] = useState<PDoc | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
-    productsAPI.get(id).then(setItem);
+    let mounted = true;
+    (async () => {
+      if (!id) return;
+      const doc = await productsAPI.get(id);
+      if (mounted) setItem(doc);
+      setLoading(false);
+    })();
+    return () => {
+      mounted = false;
+    };
   }, [id]);
 
+  if (loading) {
+    return <div className="max-w-4xl mx-auto">Loading...</div>;
+  }
   if (!item) {
-    return (
-      <div className="mx-auto max-w-5xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" onClick={() => nav(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-        </div>
-        <p className="text-muted-foreground">Loading…</p>
-      </div>
-    );
+    return <div className="max-w-4xl mx-auto">Not found.</div>;
   }
 
-  const total = sumProduct(item);
-
   return (
-    <div className="mx-auto max-w-5xl p-6 space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => nav(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => nav(`/products/${item.id}/edit`)}
-        >
-          <Pencil className="mr-2 h-4 w-4" /> Edit
-        </Button>
+        <h2 className="text-xl font-semibold">{item.name}</h2>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/products">Back</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/products/${id}/edit`}>Edit</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>{item.name}</span>
-            <span className="text-base font-normal text-muted-foreground">
-              Total:{" "}
-              <span className="font-semibold text-foreground">
-                {currency(total)}
-              </span>
-            </span>
-          </CardTitle>
+          <CardTitle>Product Details</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{item.description}</p>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Color</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {item.variants.map((v, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{v.size}</TableCell>
-                    <TableCell>{v.color}</TableCell>
-                    <TableCell className="text-right">
-                      {v.quantityOrdered}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {currency(v.unitPrice)}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {currency(
-                        (Number(v.quantityOrdered) || 0) *
-                          (Number(v.unitPrice) || 0)
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <CardContent className="grid gap-3">
+          <div>
+            <span className="text-sm text-muted-foreground">Description</span>
+            <p className="font-medium">{item.description || "-"}</p>
           </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Total</span>
+            <div className="rounded border px-2 py-1 font-semibold">
+              ₹{item.totalAmount.toFixed(2)}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Raw Materials</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3">
+          {item.rawMaterials?.length ? (
+            item.rawMaterials.map((r, idx) => (
+              <div
+                key={`${r.id}-${r.variantId}-${idx}`}
+                className="rounded-lg border p-3 grid gap-1"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">RM #{idx + 1}</div>
+                  <Badge variant="outline">
+                    {r.size}/{r.color}
+                  </Badge>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Qty: <span className="font-medium">{r.quantityOrdered}</span>{" "}
+                  × ₹{r.unitPrice} ={" "}
+                  <span className="font-semibold text-foreground">
+                    ₹{r.total.toFixed(2)}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Used: {r.quantityUsed}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No raw materials.</p>
+          )}
         </CardContent>
       </Card>
     </div>

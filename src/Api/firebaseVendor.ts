@@ -1,6 +1,6 @@
 import {
     addDoc,
-    collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, Timestamp, updateDoc, type DocumentData, type FirestoreDataConverter,
+    collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, Timestamp, updateDoc, type DocumentData, type FirestoreDataConverter,
     type QueryDocumentSnapshot,
     type SnapshotOptions,
     type UpdateData,
@@ -19,7 +19,7 @@ const vendorConverter: FirestoreDataConverter<VendorModel> = {
         const { id, createdAt, ...rest } = v as VendorModel;
         return {
             ...rest,
-            createdAt: createdAt instanceof Date ? createdAt : serverTimestamp(),
+            createdAt: createdAt instanceof Date ? createdAt : Timestamp.now(),
         };
     },
     fromFirestore(snap: QueryDocumentSnapshot, options: SnapshotOptions): VendorModel {

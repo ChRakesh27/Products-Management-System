@@ -1,8 +1,9 @@
 import { ArrowRight, PackageSearch, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { productsAPI } from "../../Api/firebaseProducts";
-import type { productModel } from "../../Model/Product";
+import { materialsAPI } from "../../Api/firebaseRawMaterial";
+import currency from "../../Constants/Currency";
+import type { RawMaterialModel } from "../../Model/RawMaterial";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -16,24 +17,19 @@ import {
   TableRow,
 } from "../ui/table";
 
-export const currency = (n: number) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-  }).format(n);
-export const sumProduct = (p: productModel) =>
+export const sumProduct = (p: RawMaterialModel) =>
   p.variants.reduce(
     (s, v) => s + (Number(v.quantityOrdered) || 0) * (Number(v.unitPrice) || 0),
     0
   );
 
-export default function ProductsList() {
+export default function RawMaterialsList() {
   const nav = useNavigate();
   const [search, setSearch] = useState("");
-  const [items, setItems] = useState<productModel[]>([]);
+  const [items, setItems] = useState<RawMaterialModel[]>([]);
 
   useEffect(() => {
-    productsAPI.list().then(setItems);
+    materialsAPI.getAll().then(setItems);
   }, []);
 
   const filtered = useMemo(() => {
@@ -48,9 +44,9 @@ export default function ProductsList() {
   return (
     <div className="mx-auto max-w-6xl p-6 space-y-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
-        <Button onClick={() => nav("/products/new")}>
-          <Plus className="mr-2 h-4 w-4" /> Add Product
+        <h1 className="text-2xl font-semibold tracking-tight">Raw Materials</h1>
+        <Button onClick={() => nav("/materials/new")}>
+          <Plus className="mr-2 h-4 w-4" /> Add Material
         </Button>
       </div>
 
@@ -70,7 +66,7 @@ export default function ProductsList() {
             <div className="flex items-center justify-center py-16 text-center text-muted-foreground">
               <div className="flex flex-col items-center gap-2">
                 <PackageSearch className="h-8 w-8" />
-                <p>No products found.</p>
+                <p>No materials found.</p>
               </div>
             </div>
           ) : (
@@ -102,7 +98,7 @@ export default function ProductsList() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => nav(`/products/${p.id}`)}
+                          onClick={() => nav(`/materials/${p.id}`)}
                         >
                           View <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>

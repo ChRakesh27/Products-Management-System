@@ -7,12 +7,11 @@ import {
     getDocs,
     limit,
     query,
-    serverTimestamp,
     Timestamp,
     updateDoc,
     where,
     type DocumentData,
-    type WithFieldValue,
+    type WithFieldValue
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { DailyProductionModel } from "../Model/DailyProductionModel";
@@ -44,7 +43,7 @@ export async function getDailyDocByDate(yyyyMmDd: string) {
 async function createDailyDoc(payload: DailyProductionModel) {
     const toWrite: WithFieldValue<DailyProductionModel> = {
         ...payload,
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.now(),
     };
     const ref = await addDoc(col, toWrite as DocumentData);
     const fresh = await getDoc(ref);
@@ -59,7 +58,7 @@ export async function upsertDailyProductionForDate(yyyyMmDd: string, field: stri
         const ref = doc(db, COLLECTION, existing.id);
         await updateDoc(ref, {
             [field]: value,
-            updatedAt: serverTimestamp(),
+            updatedAt: Timestamp.now(),
         });
         const fresh = await getDoc(ref);
         return { id: existing.id, ...(fresh.data() as DailyProductionModel) };

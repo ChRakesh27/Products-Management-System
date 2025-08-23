@@ -13,7 +13,7 @@ import { useLoading } from "../../context/LoadingContext";
 import { db } from "../../firebase";
 import type { TimestampModel } from "../../Model/Date";
 import type { POEntry } from "../../Model/POEntry";
-import type { productModel } from "../../Model/Product";
+import type { RawMaterialModel } from "../../Model/RawMaterial";
 import { DatePicker } from "../ui/DatePicker";
 import ToastMSG from "../ui/Toaster";
 
@@ -181,7 +181,7 @@ function SetPo() {
     }
   }, [id, navigate, newPOForm, setLoading, totals.grandTotal]);
 
-  async function addProduct(data: productModel) {
+  async function addProduct(data: RawMaterialModel) {
     try {
       // setLoading(true);
     } catch (error) {

@@ -24,12 +24,23 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "Input",
+    title: "Products",
+    url: "/products",
+    icon: Inbox,
+  },
+  {
+    title: "Work order",
     url: "/input",
     icon: Calendar,
   },
+
   {
     title: "Production",
+    url: "/production",
+    icon: Inbox,
+  },
+  {
+    title: "Inventory",
     url: "/production",
     icon: Inbox,
   },
