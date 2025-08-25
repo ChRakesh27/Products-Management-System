@@ -1,11 +1,10 @@
 import type { TimestampModel } from "./Date";
 
 export interface MaterialRow {
-    name: string;
+    id: string
     used: number;
     wastage: number; // "
     unit: string;
-    batchNumber: string;
     notes: string;
 };
 
@@ -46,6 +45,17 @@ export interface DailyProductionModel {
     production: productionModel | {};
     materials: MaterialRow[] | [];
     machines: MaterialRow[] | [];
+    createdAt?: TimestampModel;
+    updatedAt?: TimestampModel;
+}
+
+export interface ManufactureModel {
+    id?: string;
+    productId: string;
+    remarks: string;
+    startDate: TimestampModel | null;
+    endDate: TimestampModel | null;
+    planedUnits: number;
     createdAt?: TimestampModel;
     updatedAt?: TimestampModel;
 }

@@ -14,7 +14,7 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Purchase Orders",
+    title: "POs Given ",
     url: "/",
     icon: Home,
   },
@@ -24,13 +24,28 @@ const items = [
     icon: Calendar,
   },
   {
+    title: "---------------------",
+    url: "/materials",
+    icon: Calendar,
+  },
+  {
+    title: "POs Received",
+    url: "/",
+    icon: Home,
+  },
+  {
     title: "Products",
     url: "/products",
     icon: Inbox,
   },
   {
+    title: "------------------------",
+    url: "/materials",
+    icon: Calendar,
+  },
+  {
     title: "Work order",
-    url: "/input",
+    url: "/manufactures",
     icon: Calendar,
   },
 

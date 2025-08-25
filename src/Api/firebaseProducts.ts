@@ -43,16 +43,14 @@ function aggregateRows(rows: RawMaterialVariantModel[]) {
 
 
 export const productsAPI = {
-    async getAll(): Promise<(ProductModel & { id: string, totalAmount: number })[]> {
+    async getAll(): Promise<(ProductModel)[]> {
         const q = query(productsCol, orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
         return snap.docs.map((d) => {
             const data = d.data() as ProductModel;
-            const totalAmount = (data.rawMaterials ?? []).reduce((s, r) => s + (r.total || 0), 0);
             return {
                 id: d.id,
                 ...data,
-                totalAmount,
             };
         })
     },

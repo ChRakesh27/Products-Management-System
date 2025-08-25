@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import Manufacture from "../Manufacture/Manufacture";
 import ManufactureHome from "../Manufacture/ManufactureHome";
+import SetManufactureHome from "../Manufacture/SetManufactureHome";
 import POManagement from "../POManagement/POManagement";
 import SetPo from "../POManagement/SetPo";
 import Products from "../Products/Products";
@@ -48,7 +50,16 @@ function Home() {
               <Route path="/materials/new" element={<SetRawMaterial />} />
               <Route path="/materials/:id" element={<RawMaterialView />} />
               <Route path="/materials/:id/edit" element={<SetRawMaterial />} />
-              <Route path="/input" element={<ManufactureHome />} />
+              <Route path="/manufactures" element={<ManufactureHome />} />
+              <Route
+                path="/manufactures/new"
+                element={<SetManufactureHome />}
+              />
+              <Route
+                path="/manufactures/:id/edit"
+                element={<SetManufactureHome />}
+              />
+              <Route path="/manufactures/:id" element={<Manufacture />} />
               <Route path="/vendors" element={<VendorList />} />
               <Route path="/vendors/new" element={<VendorUpsert />} />
               <Route path="/vendors/:id" element={<VendorView />} />

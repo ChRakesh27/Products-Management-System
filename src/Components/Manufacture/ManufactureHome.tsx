@@ -1,69 +1,157 @@
-import { Box, Clipboard, Factory, Settings } from "lucide-react";
-import { useState } from "react";
-import Machine from "./Machine";
-import MaterialUsage from "./MaterialUsage";
-import ProductionData from "./ProductionData";
-function ManufactureHome() {
-  const [currentTab, setCurrentTab] = useState("production");
+// src/components/manufactures/ManufactureList.tsx
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { manufacturesAPI } from "../../Api/firebaseManufacture";
+import type { ManufactureModel } from "../../Model/DailyProductionModel";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Input } from "../ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import ToastMSG from "../ui/Toaster";
 
-  const tabs = [
-    { id: "production", label: "Production Data", icon: Factory },
-    { id: "materials", label: "Material Usage", icon: Box },
-    // { id: "quality", label: "Quality Control", icon: CheckCircle },
-    // { id: "inventory", label: "Inventory", icon: Layers },
-    // { id: "workforce", label: "Workforce", icon: Users },
-    { id: "machines", label: "Machines", icon: Settings },
-  ];
+export default function ManufactureHome() {
+  const navigate = useNavigate();
+  const [rows, setRows] = useState<ManufactureModel[]>([]);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const list = await manufacturesAPI.getAll();
+      setRows(list);
+    })();
+  }, []);
+
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter((r) =>
+      [r.remarks, r.productId].some((f) =>
+        (f ?? "").toLowerCase().includes(term)
+      )
+    );
+  }, [rows, q]);
+
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
+    if (!confirm("Delete this manufacture?")) return;
+    try {
+      await manufacturesAPI.delete(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      ToastMSG?.("success", "Deleted");
+    } catch (e) {
+      console.error(e);
+      ToastMSG?.("error", "Delete failed");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Clipboard className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Manufacturing Data Input
-            </h1>
+    <div className="grid gap-4">
+      <Card>
+        <CardHeader className="flex items-center justify-between gap-4">
+          <CardTitle>Manufactures</CardTitle>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search by product or remarks…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="w-64"
+            />
+            <Button onClick={() => navigate("/manufactures/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              New
+            </Button>
           </div>
-        </div>
-      </header>
-
-      {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200 px-6">
-        <div className="flex space-x-8 overflow-x-auto">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setCurrentTab(tab.id)}
-                className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                  currentTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="px-6 py-6">
-        {currentTab === "production" && <ProductionData />}
-        {currentTab === "materials" && <MaterialUsage />}
-        {currentTab === "machines" && <Machine />}
-
-        {/* Submit Button */}
-      </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Planned Units</TableHead>
+                <TableHead>Start</TableHead>
+                <TableHead>End</TableHead>
+                <TableHead>Remarks</TableHead>
+                <TableHead className="w-[120px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-muted-foreground"
+                  >
+                    No manufactures found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((r) => (
+                  <TableRow
+                    key={r.id}
+                    onClick={() => {
+                      navigate(`/manufactures/${r.id}`);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <TableCell className="font-medium">{r.productId}</TableCell>
+                    <TableCell>{r.planedUnits}</TableCell>
+                    <TableCell>{toDateStr(r.startDate)}</TableCell>
+                    <TableCell>{toDateStr(r.endDate)}</TableCell>
+                    <TableCell className="truncate max-w-[320px]">
+                      {r.remarks}
+                    </TableCell>
+                    <TableCell className="text-right space-x-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/manufactures/${r.id}/edit`);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(r.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-export default ManufactureHome;
+function toDateStr(v: any) {
+  try {
+    if (!v) return "-";
+    if (v?.toDate) return v.toDate().toISOString().slice(0, 10);
+    if (typeof v === "object" && "seconds" in v)
+      return new Date(v.seconds * 1000 + Math.floor(v.nanoseconds / 1_000_000))
+        .toISOString()
+        .slice(0, 10);
+    if (typeof v === "string") return v.slice(0, 10);
+    return "-";
+  } catch {
+    return "-";
+  }
+}

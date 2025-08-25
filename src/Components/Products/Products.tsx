@@ -14,17 +14,15 @@ import {
   TableRow,
 } from "../ui/table";
 
-type ProductRow = ProductModel & { id: string; totalAmount: number };
-
 export default function Products() {
-  const [items, setItems] = useState<ProductRow[]>([]);
+  const [items, setItems] = useState<ProductModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       const rows = await productsAPI.getAll();
-      if (mounted) setItems(rows);
+      if (mounted) setItems(rows as ProductModel[]);
       setLoading(false);
     })();
     return () => {
@@ -56,7 +54,6 @@ export default function Products() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Total (₹)</TableHead>
                   <TableHead className="w-28">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -66,9 +63,6 @@ export default function Products() {
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="truncate max-w-[420px]">
                       {p.description}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {p.totalAmount.toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Button asChild variant="outline" size="sm">

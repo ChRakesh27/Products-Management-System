@@ -1,4 +1,4 @@
-import { Box, Info, Plus, Save, Trash2 } from "lucide-react";
+import { Box, Info, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   getDailyDocByDate,
@@ -12,19 +12,9 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const emptyRow = (): MaterialRow => ({
-  name: "",
-  used: 0,
-  wastage: 0,
-  unit: "yards",
-  batchNumber: "",
-  notes: "",
-});
-
-function MaterialUsage() {
-  const [materialData, setMaterialData] = useState<MaterialRow[]>([emptyRow()]);
+function MaterialUsage({ product }) {
+  const [materialData, setMaterialData] = useState([]);
   const [saving, setSaving] = useState(false);
-
   const { setLoading } = useLoading();
   const currentDate = new Date();
   const d =
@@ -34,10 +24,6 @@ function MaterialUsage() {
     "-" +
     String(currentDate.getDate()).padStart(2, "0");
   const [date, setDate] = useState<string>(d);
-  // ---- actions ----
-  const addRow = () => {
-    setMaterialData((prev) => [...prev, emptyRow()]);
-  };
 
   const removeRow = (index: number) => {
     setMaterialData((prev) => prev.filter((_, i) => i !== index));
@@ -65,9 +51,9 @@ function MaterialUsage() {
 
   // ---- validation ----
   const isValid = useMemo(() => {
-    if (!date) return false;
+    if (!date || materialData?.length == 0) return false;
     // require name + used for each row
-    return materialData.every((m) => m.name.trim() && Number(m.used) >= 0);
+    return materialData.every((m) => Number(m.used) >= 0);
   }, [materialData]);
 
   // ---- submit (no backend) ----
@@ -81,7 +67,15 @@ function MaterialUsage() {
         return;
       }
       setSaving(true);
-      await upsertDailyProductionForDate(date, "materials", materialData);
+      const payload = materialData.map((ele) => ({
+        id: ele.id,
+        materialId: ele.materialId,
+        used: ele.used,
+        wastage: ele.wastage,
+        unit: ele.unit,
+        notes: ele.notes,
+      }));
+      await upsertDailyProductionForDate(date, "materials", payload);
       ToastMSG("success", "Saved material log");
     } catch (e) {
       console.error(e);
@@ -97,11 +91,33 @@ function MaterialUsage() {
         return;
       }
       try {
-        setLoading(false);
+        setLoading(true);
         const existing = await getDailyDocByDate(date);
-        if (existing?.materials)
-          setMaterialData(existing.materials as MaterialRow[]);
-        else setMaterialData([emptyRow()]);
+
+        if (existing?.materials) {
+          const data = product.rawMaterials.map((ele) => {
+            const materialData = existing.materials.find(
+              (mEle) => mEle.id == ele.id
+            );
+            return {
+              ...ele,
+              used: materialData.used,
+              wastage: materialData.wastage,
+              unit: materialData.unit,
+              notes: materialData.notes,
+            };
+          });
+          setMaterialData(data);
+        } else {
+          const data = product.rawMaterials.map((ele) => ({
+            ...ele,
+            used: 0,
+            wastage: 0,
+            unit: 0,
+            notes: "",
+          }));
+          setMaterialData(data);
+        }
       } catch (error) {
         console.log("🚀 ~ fetchData ~ error:", error);
       } finally {
@@ -128,7 +144,6 @@ function MaterialUsage() {
               date={date}
               setDate={async (d: string) => {
                 setDate(d);
-                const existing = await getDailyDocByDate(d);
               }}
             />
           </div>
@@ -139,14 +154,14 @@ function MaterialUsage() {
             <h4 className="text-lg font-medium text-gray-900">
               Material Consumption
             </h4>
-            <Button
+            {/* <Button
               type="button"
               onClick={addRow}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Add Row
-            </Button>
+            </Button> */}
           </div>
 
           {materialData.map((material, index) => (
@@ -170,15 +185,10 @@ function MaterialUsage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <Label>Material Name *</Label>
-                  <Input
-                    type="text"
-                    value={material.name}
-                    onChange={(e) => updateRow(index, "name", e.target.value)}
-                    placeholder="Material name"
-                  />
+                  {material.color}/{material.size}
                 </div>
 
                 <div>
@@ -204,7 +214,6 @@ function MaterialUsage() {
                     min={0}
                   />
                 </div>
-
                 <div>
                   <Label>Unit</Label>
                   <Input
@@ -214,19 +223,6 @@ function MaterialUsage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
                   />
                 </div>
-
-                <div>
-                  <Label>Batch Number</Label>
-                  <Input
-                    type="text"
-                    value={material.batchNumber}
-                    onChange={(e) =>
-                      updateRow(index, "batchNumber", e.target.value)
-                    }
-                    placeholder="Batch #"
-                  />
-                </div>
-
                 <div>
                   <Label>Notes</Label>
                   <Input

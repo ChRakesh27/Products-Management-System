@@ -110,7 +110,7 @@ function ProductionData() {
       try {
         setLoading(false);
         const existing = await getDailyDocByDate(date);
-        if (existing?.production)
+        if (Object.keys(existing?.production).length)
           setProductionData(existing.production as productionModel);
         else setProductionData(defaultData as productionModel);
       } catch (error) {

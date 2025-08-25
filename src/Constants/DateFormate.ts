@@ -25,6 +25,8 @@ function DateFormate(timestamp, dateFormat = "") {
     formattedDate = `${monthNum}/${day}/${year}`;
   } else if (dateFormat === "DD/Mon/YYYY") {
     formattedDate = `${day}/${monthShort}/${year}`;
+  } else if (dateFormat === "YYYY-MM-DD") {
+    formattedDate = `${year}-${monthNum}-${day}`;
   } else {
     formattedDate = `${day}/${monthNum}/${year}`;
   }
