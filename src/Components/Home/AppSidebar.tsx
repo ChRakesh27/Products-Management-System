@@ -15,7 +15,7 @@ import {
 const items = [
   {
     title: "POs Given ",
-    url: "/",
+    url: "/po-given",
     icon: Home,
   },
   {
@@ -23,14 +23,10 @@ const items = [
     url: "/materials",
     icon: Calendar,
   },
-  {
-    title: "---------------------",
-    url: "/materials",
-    icon: Calendar,
-  },
+
   {
     title: "POs Received",
-    url: "/",
+    url: "/po-received",
     icon: Home,
   },
   {
@@ -38,11 +34,7 @@ const items = [
     url: "/products",
     icon: Inbox,
   },
-  {
-    title: "------------------------",
-    url: "/materials",
-    icon: Calendar,
-  },
+
   {
     title: "Work order",
     url: "/manufactures",

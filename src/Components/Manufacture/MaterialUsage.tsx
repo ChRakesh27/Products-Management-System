@@ -97,7 +97,7 @@ function MaterialUsage({ product }) {
         if (existing?.materials) {
           const data = product.rawMaterials.map((ele) => {
             const materialData = existing.materials.find(
-              (mEle) => mEle.id == ele.id
+              (mEle) => mEle?.id == ele.id
             );
             return {
               ...ele,

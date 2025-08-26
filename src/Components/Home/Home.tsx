@@ -4,12 +4,11 @@ import Manufacture from "../Manufacture/Manufacture";
 import ManufactureHome from "../Manufacture/ManufactureHome";
 import SetManufactureHome from "../Manufacture/SetManufactureHome";
 import POManagement from "../POManagement/POManagement";
+import PoView from "../POManagement/PoView";
 import SetPo from "../POManagement/SetPo";
 import Products from "../Products/Products";
-import ProductView from "../Products/ProductView";
 import SetProduct from "../Products/SetProduct";
 import RawMaterialsList from "../RawMaterials/RawMaterialsList";
-import { RawMaterialView } from "../RawMaterials/RawMaterialView";
 import SetRawMaterial from "../RawMaterials/SetRawMaterial";
 import { SidebarProvider } from "../ui/sidebar";
 import { VendorList } from "../Vendor/VendorList";
@@ -17,7 +16,6 @@ import { VendorUpsert } from "../Vendor/VendorUpsert";
 import { VendorView } from "../Vendor/VendorView";
 import { AppSidebar } from "./AppSidebar";
 import Navbar from "./Navbar";
-import PoView from "./PoView";
 import Production from "./Production";
 
 function Home() {
@@ -25,7 +23,7 @@ function Home() {
   const navigate = useNavigate();
   useEffect(() => {
     if (location.pathname == "/") {
-      navigate("/po");
+      navigate("/po-given");
     }
   }, []);
 
@@ -37,19 +35,47 @@ function Home() {
           <Navbar />
           <div className=" full-body-container w-full">
             <Routes>
-              <Route path="/po" element={<POManagement />} />
-              <Route path="/po/:id" element={<PoView />} />
-              <Route path="/po/create" element={<SetPo />} />
-              <Route path="/po/edit/:id" element={<SetPo />} />
+              <Route
+                path="/po-given"
+                element={<POManagement field={"given"} />}
+              />
+              <Route
+                path="/po-given/:id"
+                element={<PoView field={"given"} />}
+              />
+              <Route
+                path="/po-given/create"
+                element={<SetPo field={"given"} />}
+              />
+              <Route
+                path="/po-given/:id/edit"
+                element={<SetPo field={"given"} />}
+              />
+              <Route
+                path="/po-received/:id"
+                element={<PoView field={"received"} />}
+              />
+              <Route
+                path="/po-received"
+                element={<POManagement field={"received"} />}
+              />
+              <Route
+                path="/po-received/create"
+                element={<SetPo field={"received"} />}
+              />
+              <Route
+                path="/po-received/:id/edit"
+                element={<SetPo field={"received"} />}
+              />
               <Route path="/production" element={<Production />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/new" element={<SetProduct />} />
-              <Route path="/products/:id" element={<ProductView />} />
-              <Route path="/products/:id/edit" element={<SetProduct />} />
+              <Route path="/products/:id" element={<SetProduct />} />
+              {/* <Route path="/products/:id/edit" element={<SetProduct />} /> */}
               <Route path="/materials" element={<RawMaterialsList />} />
               <Route path="/materials/new" element={<SetRawMaterial />} />
-              <Route path="/materials/:id" element={<RawMaterialView />} />
-              <Route path="/materials/:id/edit" element={<SetRawMaterial />} />
+              <Route path="/materials/:id" element={<SetRawMaterial />} />
+              {/* <Route path="/materials/:id/edit" element={<SetRawMaterial />} /> */}
               <Route path="/manufactures" element={<ManufactureHome />} />
               <Route
                 path="/manufactures/new"

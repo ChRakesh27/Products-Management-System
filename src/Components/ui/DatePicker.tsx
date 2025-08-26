@@ -4,12 +4,27 @@ import { ChevronDownIcon } from "lucide-react";
 import * as React from "react";
 
 import { format } from "date-fns";
+import { Timestamp } from "firebase/firestore";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
-export function DatePicker({ date = undefined, setDate, className = "" }) {
+export function DatePicker({
+  date = undefined,
+  setDate,
+  className = "",
+}: {
+  date?: Timestamp;
+  setDate: (d: Timestamp) => void;
+  className?: string;
+}) {
   const [open, setOpen] = React.useState(false);
+
+  function timestampDate(): Date | undefined {
+    if (!date?.seconds) return;
+    const milliseconds = date.seconds * 1000 + date.nanoseconds / 1_000_000;
+    return new Date(milliseconds);
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -17,28 +32,20 @@ export function DatePicker({ date = undefined, setDate, className = "" }) {
         <Button
           variant="outline"
           id="date"
-          className={"w-full justify-between font-normal p-5 " + className}
+          className={`w-full justify-between font-normal p-5 ${className}`}
         >
-          {date ? format(date, "PPP") : "Select date"}
+          {timestampDate() ? format(timestampDate()!, "PPP") : "Select date"}
           <ChevronDownIcon />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden p-0" align="start">
         <Calendar
           mode="single"
-          selected={date}
+          selected={timestampDate()}
           captionLayout="dropdown"
-          onSelect={(date) => {
-            if (!date) {
-              return;
-            }
-            const d =
-              date.getFullYear() +
-              "-" +
-              String(date.getMonth() + 1).padStart(2, "0") +
-              "-" +
-              String(date.getDate()).padStart(2, "0");
-            setDate(d);
+          onSelect={(d) => {
+            if (!d) return;
+            setDate(Timestamp.fromDate(d));
             setOpen(false);
           }}
         />

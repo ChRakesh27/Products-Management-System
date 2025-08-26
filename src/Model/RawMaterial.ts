@@ -5,8 +5,9 @@ export interface RawMaterialModel {
     name: string;
     description: string;
     variants: RawMaterialVariantModel[];
-    createdAt: TimestampModel;
-    updatedAt: TimestampModel;
+    createdAt?: TimestampModel;
+    updatedAt?: TimestampModel;
+    poNumber?: string;
 }
 export interface RawMaterialVariantModel {
     id: string;

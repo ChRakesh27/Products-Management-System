@@ -12,11 +12,24 @@ interface RawMaterialModel {
     total: number;
 }
 
+interface variantModel {
+    id: string;
+    variantId: string;
+    size: string;
+    color: string;
+    quantityOrdered: number;
+    unitPrice: number;
+    total: number;
+    rawMaterials: RawMaterialModel[]
+}
+
+
 export interface ProductModel {
     id?: string;
     name: string;
     description: string;
-    rawMaterials: RawMaterialModel[]
+    variants: variantModel[]
     createdAt?: TimestampModel;
     updatedAt?: TimestampModel;
+    poNumber?: string;
 }

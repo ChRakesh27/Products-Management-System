@@ -245,189 +245,195 @@ export default function SetProduct() {
                 placeholder="Short description"
               />
             </div>
+            {
+              <>
+                <div className="flex items-center justify-between ">
+                  <div>Raw Materials</div>
+                  <Dialog open={openPicker} onOpenChange={setOpenPicker}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="default" onClick={addRaw}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Raw Material
+                      </Button>
+                    </DialogTrigger>
 
-            <div className="flex items-center justify-between ">
-              <div>Raw Materials</div>
-              <Dialog open={openPicker} onOpenChange={setOpenPicker}>
-                <DialogTrigger asChild>
-                  <Button type="button" variant="default" onClick={addRaw}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Raw Material
-                  </Button>
-                </DialogTrigger>
+                    <DialogContent className="max-w-xl">
+                      <DialogHeader>
+                        <DialogTitle>Select Raw Material & Variant</DialogTitle>
+                      </DialogHeader>
 
-                <DialogContent className="max-w-xl">
-                  <DialogHeader>
-                    <DialogTitle>Select Raw Material & Variant</DialogTitle>
-                  </DialogHeader>
+                      <div className="grid gap-4">
+                        <div className="grid gap-2">
+                          <Label>Raw Material</Label>
+                          <Select value={poChosen} onValueChange={setPoChosen}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose raw material" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {poList.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label>Raw Material</Label>
-                      <Select value={poChosen} onValueChange={setPoChosen}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose raw material" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {poList.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>
-                              {m.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {selectedPo ? (
-                      <div className="grid gap-2">
-                        <Label>Variant</Label>
-                        <Select
-                          value={variantChosen}
-                          onValueChange={setVariantChosen}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose variant (size/color)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedPo.variants.map((v) => (
-                              <SelectItem key={v.id} value={v.id}>
-                                {v.size} / {v.color} — Qty: {v.quantityOrdered}{" "}
-                                × {currency(v.unitPrice)} =
-                                {currency(
-                                  v.total || v.quantityOrdered * v.unitPrice
-                                )}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setOpenPicker(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={addRawFromDialog}
-                      disabled={!selectedVariant}
-                    >
-                      Add
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="grid gap-3">
-              {raws.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No raw materials added.
-                </p>
-              ) : (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[60px]">#</TableHead>
-                        <TableHead>Variant</TableHead>
-                        <TableHead>Unit Price</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead className="w-[50px] text-center">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {raws.map((r, i) => (
-                        <TableRow key={`${r.materialId}-${r.id}-${i}`}>
-                          <TableCell className="font-medium">{i + 1}</TableCell>
-                          <TableCell>
-                            {r.size}/{r.color}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={r.unitPrice}
-                              onChange={(e) => {
-                                const price = parseFloat(e.target.value) || 0;
-                                setRaws((prev) =>
-                                  prev.map((item, idx) =>
-                                    idx === i
-                                      ? {
-                                          ...item,
-                                          unitPrice: price,
-                                          total: item.quantityOrdered * price,
-                                        }
-                                      : item
-                                  )
-                                );
-                              }}
-                              className="w-28"
-                              min={0}
-                              step="0.01"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={r.quantityOrdered}
-                              onChange={(e) => {
-                                const qty = parseFloat(e.target.value) || 0;
-                                setRaws((prev) =>
-                                  prev.map((item, idx) =>
-                                    idx === i
-                                      ? {
-                                          ...item,
-                                          quantityOrdered: qty,
-                                          total: qty * item.unitPrice,
-                                        }
-                                      : item
-                                  )
-                                );
-                              }}
-                              className="w-24"
-                              min={0}
-                            />
-                          </TableCell>
-
-                          <TableCell className="font-semibold">
-                            {currency(r.total)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeRaw(i)}
+                        {selectedPo ? (
+                          <div className="grid gap-2">
+                            <Label>Variant</Label>
+                            <Select
+                              value={variantChosen}
+                              onValueChange={setVariantChosen}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose variant (size/color)" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {selectedPo.variants.map((v) => (
+                                  <SelectItem key={v.id} value={v.id}>
+                                    {v.size} / {v.color} — Qty:{" "}
+                                    {v.quantityOrdered} ×{" "}
+                                    {currency(v.unitPrice)} =
+                                    {currency(
+                                      v.total || v.quantityOrdered * v.unitPrice
+                                    )}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : null}
+                      </div>
 
-                  <Separator />
-                  <div className="flex justify-end text-sm mt-2">
-                    <div className="rounded-lg border px-3 py-1">
-                      Total:{" "}
-                      <span className="font-bold">
-                        {currency(productTotal)}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+                      <DialogFooter>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setOpenPicker(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={addRawFromDialog}
+                          disabled={!selectedVariant}
+                        >
+                          Add
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <div className="grid gap-3">
+                  {raws.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No raw materials added.
+                    </p>
+                  ) : (
+                    <>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[60px]">#</TableHead>
+                            <TableHead>Variant</TableHead>
+                            <TableHead>Unit Price</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead className="w-[50px] text-center">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {raws.map((r, i) => (
+                            <TableRow key={`${r.materialId}-${r.id}-${i}`}>
+                              <TableCell className="font-medium">
+                                {i + 1}
+                              </TableCell>
+                              <TableCell>
+                                {r.size}/{r.color}
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={r.unitPrice}
+                                  onChange={(e) => {
+                                    const price =
+                                      parseFloat(e.target.value) || 0;
+                                    setRaws((prev) =>
+                                      prev.map((item, idx) =>
+                                        idx === i
+                                          ? {
+                                              ...item,
+                                              unitPrice: price,
+                                              total:
+                                                item.quantityOrdered * price,
+                                            }
+                                          : item
+                                      )
+                                    );
+                                  }}
+                                  className="w-28"
+                                  min={0}
+                                  step="0.01"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={r.quantityOrdered}
+                                  onChange={(e) => {
+                                    const qty = parseFloat(e.target.value) || 0;
+                                    setRaws((prev) =>
+                                      prev.map((item, idx) =>
+                                        idx === i
+                                          ? {
+                                              ...item,
+                                              quantityOrdered: qty,
+                                              total: qty * item.unitPrice,
+                                            }
+                                          : item
+                                      )
+                                    );
+                                  }}
+                                  className="w-24"
+                                  min={0}
+                                />
+                              </TableCell>
 
+                              <TableCell className="font-semibold">
+                                {currency(r.total)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeRaw(i)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+
+                      <Separator />
+                      <div className="flex justify-end text-sm mt-2">
+                        <div className="rounded-lg border px-3 py-1">
+                          Total:{" "}
+                          <span className="font-bold">
+                            {currency(productTotal)}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            }
             <div className="flex justify-end gap-2">
               <Button type="submit" disabled={!canSubmit || submitting}>
                 {submitting

@@ -59,7 +59,7 @@ export const materialsAPI = {
     async get(id: string): Promise<RawMaterialModel | null> {
         const ref = doc(db, COLLECTION, id).withConverter(materialConverter);
         const snap = await getDoc(ref);
-        return snap.exists() ? snap.data() : null;
+        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
     },
 
     // Create a material

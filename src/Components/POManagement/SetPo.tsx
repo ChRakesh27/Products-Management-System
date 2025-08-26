@@ -1,36 +1,25 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  Timestamp,
-  updateDoc,
-} from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { poGivenAPI } from "../../Api/firebasePOsGiven";
+import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+import generateUUID from "../../Constants/generateUniqueId";
 import { useLoading } from "../../context/LoadingContext";
-import { db } from "../../firebase";
-import type { TimestampModel } from "../../Model/Date";
 import type { POEntry } from "../../Model/POEntry";
-import type { RawMaterialModel } from "../../Model/RawMaterial";
 import { DatePicker } from "../ui/DatePicker";
 import ToastMSG from "../ui/Toaster";
 
 // ---- Helpers --------------------------------------------------------------
 
-const tsToDate = (ts?: TimestampModel) =>
-  ts ? new Date(ts.seconds * 1000 + ts.nanoseconds / 1_000_000) : undefined;
-
-const dateToTs = (d: Date | undefined) =>
-  d ? Timestamp.fromDate(d) : Timestamp.now();
-
 const formatMoney = (n: number) => n.toFixed(2);
 
 const emptyVariant = () => ({
+  id: generateUUID(),
   color: "",
   size: "",
   quantityOrdered: 0,
+  quantityUsed: 0,
   unitPrice: 0,
   total: 0,
 });
@@ -43,7 +32,7 @@ const emptyProduct = () => ({
 
 // ---- Component ------------------------------------------------------------
 
-function SetPo() {
+function SetPo({ field }) {
   const { id } = useParams();
   const { setLoading } = useLoading();
   const navigate = useNavigate();
@@ -165,13 +154,20 @@ function SetPo() {
       };
 
       if (id) {
-        await updateDoc(doc(db, "poManagement", id), payload);
+        if (field == "given") {
+          await poGivenAPI.update(id, payload);
+        } else {
+          await poReceivedAPI.update(id, payload);
+        }
         ToastMSG("success", "Successfully updated the PO");
-        navigate("/po/" + id);
+        navigate("./../");
       } else {
-        const ref = await addDoc(collection(db, "poManagement"), payload);
+        const ref = await (field == "given"
+          ? poGivenAPI
+          : poReceivedAPI
+        ).create(payload);
         ToastMSG("success", "Successfully created the PO");
-        navigate("/po/" + ref.id);
+        navigate(ref.id);
       }
     } catch (error) {
       console.error("addNewPO error:", error);
@@ -181,32 +177,23 @@ function SetPo() {
     }
   }, [id, navigate, newPOForm, setLoading, totals.grandTotal]);
 
-  async function addProduct(data: RawMaterialModel) {
-    try {
-      // setLoading(true);
-    } catch (error) {
-      console.log("🚀 ~ addProduct ~ error:", error);
-    }
-  }
-
-  // ---- Load existing ------------------------------------------------------
-
   useEffect(() => {
     const fetchPOData = async () => {
       if (!id) return;
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, "poManagement", id));
-        if (snap.exists()) {
-          const data = snap.data() as POEntry;
-
-          // Ensure products always have variants array
+        let data = (await (field == "given" ? poGivenAPI : poReceivedAPI).get(
+          id
+        )) as POEntry;
+        if (data) {
           const normalizedProducts = data.products?.map((p: any) => ({
+            id: p.id,
             name: p.name || "",
             description: p.description || "",
             variants:
               Array.isArray(p.variants) && p.variants.length > 0
                 ? p.variants.map((v: any) => ({
+                    id: v.id,
                     color: v.color || "",
                     size: v.size || "",
                     quantityOrdered: Number(v.quantityOrdered) || 0,
@@ -278,10 +265,10 @@ function SetPo() {
               PO Date *
             </label>
             <DatePicker
-              date={tsToDate(newPOForm.poDate)}
-              setDate={(date: Date) =>
-                setNewPOForm((prev) => ({ ...prev, poDate: dateToTs(date) }))
-              }
+              date={newPOForm.poDate as any}
+              setDate={(date) => {
+                setNewPOForm((prev) => ({ ...prev, poDate: date }));
+              }}
             />
           </div>
 
@@ -290,11 +277,11 @@ function SetPo() {
               Delivery Date *
             </label>
             <DatePicker
-              date={tsToDate(newPOForm.deliveryDate)}
-              setDate={(date: Date) =>
+              date={newPOForm.deliveryDate as any}
+              setDate={(date) =>
                 setNewPOForm((prev) => ({
                   ...prev,
-                  deliveryDate: dateToTs(date),
+                  deliveryDate: date,
                 }))
               }
             />

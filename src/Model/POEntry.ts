@@ -1,25 +1,12 @@
 import type { TimestampModel } from "./Date";
-
-
-interface variant {
-    size: string;
-    color: string;
-    quantityOrdered: number;
-    unitPrice: number;
-    total: number;
-}
-interface Products {
-    name: string;
-    description: string;
-    variants: variant[];
-}
-
+import type { RawMaterialModel } from "./RawMaterial";
 
 export interface POEntry {
+    id?: string;
     supplier: string;
     poNumber: string;
     poDate: TimestampModel;
-    products: Products[];
+    products: RawMaterialModel[];
     deliveryDate: TimestampModel;
     paymentStatus: string;
     remarks: string;

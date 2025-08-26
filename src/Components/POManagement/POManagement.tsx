@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
 import {
   Bell,
   Calendar,
@@ -19,13 +19,15 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { poGivenAPI } from "../../Api/firebasePOsGiven";
+import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
 import { db } from "../../firebase";
 import type { POEntry } from "../../Model/POEntry";
 import ToastMSG from "../ui/Toaster";
 
-const POManagement = () => {
+const POManagement = ({ field }) => {
   const { setLoading } = useLoading();
 
   const [purchaseOrders, setPurchaseOrders] = useState<
@@ -92,19 +94,20 @@ const POManagement = () => {
 
   const deletePO = async (poId: string) => {
     if (
-      window.confirm("Are you sure you want to delete this Purchase Order?")
+      !window.confirm("Are you sure you want to delete this Purchase Order?")
     ) {
-      try {
-        setLoading(true);
-        await deleteDoc(doc(db, "poManagement", poId));
-        setPurchaseOrders(purchaseOrders.filter((po) => po.id !== poId));
-        ToastMSG("success", "Successfully delete the PO");
-      } catch (error) {
-        ToastMSG("error", "Failed to delete the PO");
-        console.log("🚀 ~ deletePO ~ error:", error);
-      } finally {
-        setLoading(false);
-      }
+      return;
+    }
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, "poManagement", poId));
+      setPurchaseOrders(purchaseOrders.filter((po) => po.id !== poId));
+      ToastMSG("success", "Successfully delete the PO");
+    } catch (error) {
+      ToastMSG("error", "Failed to delete the PO");
+      console.log("🚀 ~ deletePO ~ error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,13 +115,10 @@ const POManagement = () => {
     const fetchPOData = async () => {
       setLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, "poManagement"));
-        const data: (POEntry & { id: string })[] = querySnapshot.docs.map(
-          (doc) => ({
-            id: doc.id,
-            ...(doc.data() as POEntry),
-          })
-        );
+        const data: any = await (field == "given"
+          ? poGivenAPI
+          : poReceivedAPI
+        ).getAll();
         setPurchaseOrders(data);
       } catch (error) {
         console.log("🚀 ~ fetchPOData ~ error:", error);
@@ -143,7 +143,7 @@ const POManagement = () => {
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => deletePO(po.id)}
+            // onClick={() => deletePO(po.id)}
             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete PO"
           >
@@ -358,7 +358,7 @@ const POManagement = () => {
           </div>
           <button
             onClick={() => {
-              navigate("/po/create");
+              navigate("create");
             }}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
           >
@@ -386,7 +386,7 @@ const POManagement = () => {
                 </p>
                 {!searchTerm && (
                   <button
-                    onClick={() => navigate("/po/create")}
+                    onClick={() => navigate("create")}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     New PO Entry
@@ -401,13 +401,13 @@ const POManagement = () => {
         {currentView === "list" && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+              <div className="grid grid-cols-11 gap-4 text-sm font-semibold text-gray-700">
                 <div className="col-span-3">Purchase Order</div>
                 <div className="col-span-2">Buyer</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Styles</div>
                 <div className="col-span-2">Total Amount</div>
-                <div className="col-span-1">Actions</div>
+                {/* <div className="col-span-1">Actions</div> */}
               </div>
             </div>
             <div className="divide-y divide-gray-200">
@@ -416,10 +416,10 @@ const POManagement = () => {
                   key={po.id}
                   className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer "
                   onClick={() => {
-                    navigate("/po/" + po.id);
+                    navigate(po.id);
                   }}
                 >
-                  <div className="grid grid-cols-12 gap-4 items-center">
+                  <div className="grid grid-cols-11 gap-4 items-center">
                     <div className="col-span-3">
                       <div className="flex items-center gap-3">
                         {getStatusIcon(po.status)}
@@ -466,7 +466,7 @@ const POManagement = () => {
                         ${po.totalAmount.toFixed(2)}
                       </span>
                     </div>
-                    <div className="col-span-1">
+                    {/* <div className="col-span-1">
                       <div className="flex gap-1">
                         <button
                           onClick={(e) => {
@@ -479,7 +479,7 @@ const POManagement = () => {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               ))}
@@ -496,7 +496,7 @@ const POManagement = () => {
                   </p>
                   {!searchTerm && (
                     <button
-                      onClick={() => navigate("/po/create")}
+                      onClick={() => navigate("create")}
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       New PO Entry

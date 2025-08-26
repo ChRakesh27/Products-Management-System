@@ -1,6 +1,8 @@
-import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { doc, Timestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { poGivenAPI } from "../../Api/firebasePOsGiven";
+import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
 import { db } from "../../firebase";
@@ -8,7 +10,7 @@ import type { POEntry } from "../../Model/POEntry";
 import { Button } from "../ui/button";
 import ToastMSG from "../ui/Toaster";
 
-const PoView = () => {
+const PoView = ({ field }) => {
   const { id } = useParams();
   const [PODetails, setPODetails] = useState<POEntry>(null);
   const { setLoading } = useLoading();
@@ -35,9 +37,9 @@ const PoView = () => {
     const fetchPOData = async () => {
       setLoading(true);
       try {
-        const data = (
-          await getDoc(doc(db, "poManagement", id))
-        ).data() as POEntry;
+        const data = (await (field == "given" ? poGivenAPI : poReceivedAPI).get(
+          id
+        )) as POEntry;
         setPODetails(data);
       } catch (error) {
         console.log("🚀 ~ fetchPOData ~ error:", error);
@@ -55,7 +57,7 @@ const PoView = () => {
           Purchase Order Details
         </h3>
         <div className="">
-          <Button variant="outline" onClick={() => navigate("/po/edit/" + id)}>
+          <Button variant="outline" onClick={() => navigate("edit")}>
             Edit
           </Button>
         </div>
@@ -115,7 +117,7 @@ const PoView = () => {
                 <select
                   value={PODetails?.status}
                   onChange={(e) => {
-                    updatePOStatus(e.target.value);
+                    // updatePOStatus(e.target.value);
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >

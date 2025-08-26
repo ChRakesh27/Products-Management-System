@@ -1,5 +1,6 @@
 // data/products.ts
 import {
+    addDoc,
     collection,
     deleteDoc,
     doc,
@@ -65,7 +66,15 @@ export const productsAPI = {
 
     async create(input: ProductModel) {
         if (!input.name.trim()) throw new Error("Product name is required");
-        if (!input.rawMaterials?.length) throw new Error("At least one raw material is required");
+        if (!input.rawMaterials?.length) {
+            const res = await addDoc(productsCol, {
+                ...input,
+                description: input.description || "",
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            });
+            return { id: res.id }
+        }
         const aggregated = aggregateRows(input.rawMaterials);
 
         return await runTransaction(db, async (tx) => {
