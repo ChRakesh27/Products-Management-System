@@ -8,12 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import ToastMSG from "../ui/Toaster";
 
 import { materialsAPI } from "../../Api/firebaseRawMaterial";
-import type { ProductModel } from "../../Model/ProductModel";
-import type {
-  RawMaterialModel,
-  RawMaterialVariantModel,
-} from "../../Model/RawMaterial";
-
+import type { ProductModel, variantModel } from "../../Model/ProductModel";
+import type { RawMaterialVariantModel } from "../../Model/RawMaterial";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +29,9 @@ import {
 } from "../ui/select";
 import { Separator } from "../ui/separator";
 
-// ---- Firestore (products) inline here ----
 import { productsAPI } from "../../Api/firebaseProducts";
 import currency from "../../Constants/Currency";
+import generateUUID from "../../Constants/generateUniqueId";
 import { useLoading } from "../../context/LoadingContext";
 import {
   Table,
@@ -46,49 +42,47 @@ import {
   TableRow,
 } from "../ui/table";
 
-// Shape saved on Product.rawMaterials (variant + its parent raw material id)
-type ProductRawRow = {
-  id: string; // variant id
-  materialId: string; // raw material doc id (poMaterials)
-  size: string;
-  color: string;
-  quantityOrdered: number;
-  quantityUsed: number; // default 0
-  unitPrice: number;
-  total: number;
-};
+const emptyVariant = (): variantModel & {
+  totalRaw: number;
+} => ({
+  id: generateUUID(),
+  size: "",
+  color: "",
+  quantityOrdered: 0,
+  unitPrice: 0,
+  total: 0,
+  totalRaw: 0,
+  rawMaterials: [],
+});
 
 export default function SetProduct() {
-  const { id } = useParams<{ id?: string }>(); // product id if editing
+  const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { setLoading } = useLoading();
 
-  // Base fields
+  // Product fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-
-  // Raw materials within the product
-  const [raws, setRaws] = useState<ProductRawRow[]>([]);
-
-  // Picker dialog state
-  const [openPicker, setOpenPicker] = useState(false);
-  const [poList, setPoList] = useState<RawMaterialModel[]>([]);
-  const [poChosen, setPoChosen] = useState<string>("");
-  const [variantChosen, setVariantChosen] = useState<string>("");
-
-  // Load/edit state
-  const { setLoading } = useLoading();
+  const [variants, setVariants] = useState([emptyVariant()]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch raw materials for picker
+  // Raw material picker state
+  const [openPicker, setOpenPicker] = useState(false);
+  const [activeVariantId, setActiveVariantId] = useState<string>(""); // which variant we add to
+  const [rawList, setRawList] = useState([]);
+  const [rawChosen, setRawChosen] = useState<string>("");
+  const [rawVariantChosen, setRawVariantChosen] = useState<string>("");
+
+  // Load raw materials
   useEffect(() => {
     let mounted = true;
-    materialsAPI.getAll().then((items) => mounted && setPoList(items));
+    materialsAPI.getAll().then((items) => mounted && setRawList(items));
     return () => {
       mounted = false;
     };
   }, []);
 
-  // If editing, fetch product once
+  // If editing, fetch product
   useEffect(() => {
     if (!id) return;
     let mounted = true;
@@ -104,7 +98,17 @@ export default function SetProduct() {
         if (mounted) {
           setName(data.name || "");
           setDescription(data.description || "");
-          setRaws((data.rawMaterials as unknown as ProductRawRow[]) || []);
+          // ensure variants shape
+          const v = (data.variants ?? []).map((vv) => ({
+            ...vv,
+            rawMaterials: vv.rawMaterials ?? [],
+            totalRaw:
+              (vv.rawMaterials ?? []).reduce(
+                (s, rm) => s + (rm.total ?? rm.quantityOrdered * rm.unitPrice),
+                0
+              ) || 0,
+          }));
+          setVariants(v.length ? v : [emptyVariant()]);
         }
       } catch (e) {
         console.error(e);
@@ -116,70 +120,154 @@ export default function SetProduct() {
     return () => {
       mounted = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, setLoading]);
 
-  const productTotal = useMemo(
-    () => raws.reduce((s, r) => s + (r.total || 0), 0),
-    [raws]
+  // Picker computed selections
+  const selectedRaw = useMemo(
+    () => rawList.find((m) => m.id === rawChosen) ?? null,
+    [rawChosen, rawList]
+  );
+  const selectedRawVariant = useMemo(
+    () =>
+      selectedRaw?.variants.find(
+        (v: RawMaterialVariantModel) => v.id === rawVariantChosen
+      ) ?? null,
+    [selectedRaw, rawVariantChosen]
   );
 
+  // Totals
+  const productTotal = useMemo(
+    () => variants.reduce((sum, v) => sum + (v.total || 0), 0),
+    [variants]
+  );
+
+  // Validation
   const canSubmit =
     name.trim().length > 0 &&
-    raws.length > 0 &&
-    raws.every((r) => r.id && r.materialId);
+    variants.length > 0 &&
+    variants.every((v) => v.size.trim() && v.color.trim());
 
-  const addRaw = () => setOpenPicker(true);
+  // Handlers: variants
+  const addVariant = () => {
+    setVariants((prev) => [...prev, emptyVariant()]);
+  };
+  const removeVariant = (variantId: string) => {
+    setVariants((prev) => prev.filter((v) => v.id !== variantId));
+  };
+  const updateVariantField = (
+    variantId: string,
+    field: keyof variantModel,
+    value: string | number
+  ) => {
+    setVariants((prev) =>
+      prev.map((v) => (v.id === variantId ? { ...v, [field]: value } : v))
+    );
+  };
 
-  const selectedPo = useMemo(
-    () => poList.find((m) => m.id === poChosen) ?? null,
-    [poChosen, poList]
-  );
-
-  const selectedVariant = useMemo(
-    () =>
-      selectedPo?.variants.find(
-        (v: RawMaterialVariantModel) => v.id === variantChosen
-      ) ?? null,
-    [selectedPo, variantChosen]
-  );
+  // Handlers: raw materials per variant
+  const openAddRawForVariant = (variantId: string) => {
+    setActiveVariantId(variantId);
+    setRawChosen("");
+    setRawVariantChosen("");
+    setOpenPicker(true);
+  };
 
   const addRawFromDialog = () => {
-    if (!selectedPo || !selectedVariant) return;
+    if (!activeVariantId || !selectedRaw || !selectedRawVariant) return;
 
-    const row: ProductRawRow = {
-      id: selectedVariant.id,
-      materialId: selectedPo.id,
-      size: selectedVariant.size,
-      color: selectedVariant.color,
-      quantityOrdered: selectedVariant.quantityOrdered,
+    const newRM: RawMaterialVariantModel & {
+      totalRaw: number;
+    } = {
+      id: selectedRawVariant.id, // variant id
+      materialId: selectedRaw.id, // raw material doc id
+      size: selectedRawVariant.size,
+      color: selectedRawVariant.color,
+      quantityOrdered: selectedRawVariant.quantityOrdered,
       quantityUsed: 0,
-      unitPrice: selectedVariant.unitPrice,
-      total:
-        (selectedVariant.total ??
-          selectedVariant.quantityOrdered * selectedVariant.unitPrice) ||
+      unitPrice: selectedRawVariant.unitPrice,
+      total: selectedRawVariant.total,
+      totalRaw:
+        (selectedRawVariant.total ??
+          selectedRawVariant.quantityOrdered * selectedRawVariant.unitPrice) ||
         0,
     };
 
-    setRaws((prev) => {
-      const idx = prev.findIndex(
-        (p) => p.id === row.id && p.materialId === row.materialId
-      );
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = row;
-        return next;
-      }
-      return [...prev, row];
-    });
+    setVariants((prev) =>
+      prev.map((v) => {
+        if (v.id !== activeVariantId) return v;
+        // if same (materialId, id) exists, replace
+        const idx = v.rawMaterials.findIndex(
+          (rm) => rm.id === newRM.id && rm.materialId === newRM.materialId
+        );
+        const nextRM =
+          idx >= 0
+            ? v.rawMaterials.map((rm, i) => (i === idx ? newRM : rm))
+            : [...v.rawMaterials, newRM];
 
-    setPoChosen("");
-    setVariantChosen("");
+        const newTotal =
+          nextRM.reduce(
+            (s, rm) => s + (rm.total ?? rm.quantityOrdered * rm.unitPrice),
+            0
+          ) || 0;
+
+        return { ...v, rawMaterials: nextRM, totalRaw: newTotal };
+      })
+    );
+
     setOpenPicker(false);
   };
 
-  const removeRaw = (i: number) =>
-    setRaws((prev) => prev.filter((_, idx) => i !== idx));
+  const removeRawFromVariant = (variantId: string, index: number) => {
+    setVariants((prev) =>
+      prev.map((v) => {
+        if (v.id !== variantId) return v;
+        const nextRM = v.rawMaterials.filter((_, i) => i !== index);
+        const newTotal =
+          nextRM.reduce(
+            (s, rm) => s + (rm.total ?? rm.quantityOrdered * rm.unitPrice),
+            0
+          ) || 0;
+        return { ...v, rawMaterials: nextRM, totalRaw: newTotal };
+      })
+    );
+  };
 
+  const updateRawCell = (
+    variantId: string,
+    index: number,
+    field: keyof RawMaterialVariantModel,
+    value: number
+  ) => {
+    setVariants((prev) =>
+      prev.map((v) => {
+        if (v.id !== variantId) return v;
+        const nextRM = v.rawMaterials.map((rm, i) => {
+          if (i !== index) return rm;
+          const updated: RawMaterialVariantModel = {
+            ...rm,
+            [field]: value,
+          } as any;
+          // recalc line total
+          const qty = Number(
+            field === "quantityOrdered" ? value : updated.quantityOrdered
+          );
+          const price = Number(
+            field === "unitPrice" ? value : updated.unitPrice
+          );
+          updated.total = (qty || 0) * (price || 0);
+          return updated;
+        });
+        const newTotal =
+          nextRM.reduce(
+            (s, r) => s + (r.total ?? r.quantityOrdered * r.unitPrice),
+            0
+          ) || 0;
+        return { ...v, rawMaterials: nextRM, totalRaw: newTotal };
+      })
+    );
+  };
+
+  // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -187,9 +275,10 @@ export default function SetProduct() {
     const payload: Omit<ProductModel, "id"> = {
       name: name.trim(),
       description: description.trim(),
-      rawMaterials: raws as unknown as ProductModel["rawMaterials"],
-      createdAt: {} as any,
-      updatedAt: {} as any,
+      variants,
+      createdAt: undefined,
+      updatedAt: undefined,
+      poNumber: undefined,
     };
 
     try {
@@ -198,7 +287,7 @@ export default function SetProduct() {
         await productsAPI.update(id, {
           name: payload.name,
           description: payload.description,
-          rawMaterials: payload.rawMaterials,
+          variants: payload.variants,
         });
         ToastMSG?.("success", "Product updated");
         navigate(`/products/${id}`);
@@ -206,7 +295,7 @@ export default function SetProduct() {
         const ref = await productsAPI.create({
           name: payload.name,
           description: payload.description,
-          rawMaterials: payload.rawMaterials,
+          variants: payload.variants,
         });
         ToastMSG?.("success", "Product created");
         navigate(`/products/${ref.id}`);
@@ -223,10 +312,11 @@ export default function SetProduct() {
     <div className="max-w-7xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{id ? "Update " : "Create "} Product</CardTitle>
+          <CardTitle>{id ? "Update" : "Create"} Product</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-6">
+            {/* Basic */}
             <div className="grid gap-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
@@ -245,18 +335,71 @@ export default function SetProduct() {
                 placeholder="Short description"
               />
             </div>
-            {
-              <>
-                <div className="flex items-center justify-between ">
-                  <div>Raw Materials</div>
+
+            {/* Variants */}
+            <div className="flex justify-between items-center">
+              <div className="font-medium">Variants</div>
+              <Button type="button" onClick={addVariant}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Variant
+              </Button>
+            </div>
+
+            {variants.map((v) => (
+              <div key={v.id} className="rounded-lg border p-4 space-y-4">
+                {/* Variant basic fields */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="mb-1 block">Size *</Label>
+                    <Input
+                      value={v.size}
+                      onChange={(e) =>
+                        updateVariantField(v.id, "size", e.target.value)
+                      }
+                      placeholder="S, M, L, XL"
+                    />
+                  </div>
+                  <div>
+                    <Label className="mb-1 block">Color *</Label>
+                    <Input
+                      value={v.color}
+                      onChange={(e) =>
+                        updateVariantField(v.id, "color", e.target.value)
+                      }
+                      placeholder="Color"
+                    />
+                  </div>
+                  <div className="">
+                    <div className="flex items-end justify-between gap-2">
+                      <div className="text-sm text-muted-foreground">
+                        po Total:
+                      </div>
+                      <div className="font-semibold">{currency(v.total)}</div>
+                    </div>
+                    <div className="flex items-end justify-between gap-2">
+                      <div className="text-sm text-muted-foreground">
+                        Variant Total:
+                      </div>
+                      <div className="font-semibold">
+                        {currency(v.totalRaw)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Raw materials header */}
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">Raw Materials</div>
                   <Dialog open={openPicker} onOpenChange={setOpenPicker}>
                     <DialogTrigger asChild>
-                      <Button type="button" variant="default" onClick={addRaw}>
+                      <Button
+                        type="button"
+                        onClick={() => openAddRawForVariant(v.id)}
+                      >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Raw Material
                       </Button>
                     </DialogTrigger>
-
                     <DialogContent className="max-w-xl">
                       <DialogHeader>
                         <DialogTitle>Select Raw Material & Variant</DialogTitle>
@@ -265,12 +408,15 @@ export default function SetProduct() {
                       <div className="grid gap-4">
                         <div className="grid gap-2">
                           <Label>Raw Material</Label>
-                          <Select value={poChosen} onValueChange={setPoChosen}>
+                          <Select
+                            value={rawChosen}
+                            onValueChange={setRawChosen}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Choose raw material" />
                             </SelectTrigger>
                             <SelectContent>
-                              {poList.map((m) => (
+                              {rawList.map((m) => (
                                 <SelectItem key={m.id} value={m.id}>
                                   {m.name}
                                 </SelectItem>
@@ -279,24 +425,25 @@ export default function SetProduct() {
                           </Select>
                         </div>
 
-                        {selectedPo ? (
+                        {selectedRaw ? (
                           <div className="grid gap-2">
                             <Label>Variant</Label>
                             <Select
-                              value={variantChosen}
-                              onValueChange={setVariantChosen}
+                              value={rawVariantChosen}
+                              onValueChange={setRawVariantChosen}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Choose variant (size/color)" />
                               </SelectTrigger>
                               <SelectContent>
-                                {selectedPo.variants.map((v) => (
-                                  <SelectItem key={v.id} value={v.id}>
-                                    {v.size} / {v.color} — Qty:{" "}
-                                    {v.quantityOrdered} ×{" "}
-                                    {currency(v.unitPrice)} =
+                                {selectedRaw.variants.map((rv) => (
+                                  <SelectItem key={rv.id} value={rv.id}>
+                                    {rv.size} / {rv.color} — Qty:{" "}
+                                    {rv.quantityOrdered} ×{" "}
+                                    {currency(rv.unitPrice)} ={" "}
                                     {currency(
-                                      v.total || v.quantityOrdered * v.unitPrice
+                                      rv.total ||
+                                        rv.quantityOrdered * rv.unitPrice
                                     )}
                                   </SelectItem>
                                 ))}
@@ -317,7 +464,7 @@ export default function SetProduct() {
                         <Button
                           type="button"
                           onClick={addRawFromDialog}
-                          disabled={!selectedVariant}
+                          disabled={!selectedRawVariant}
                         >
                           Add
                         </Button>
@@ -325,10 +472,12 @@ export default function SetProduct() {
                     </DialogContent>
                   </Dialog>
                 </div>
+
+                {/* Raw materials table for this variant */}
                 <div className="grid gap-3">
-                  {raws.length === 0 ? (
+                  {v.rawMaterials.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      No raw materials added.
+                      No raw materials added for this variant.
                     </p>
                   ) : (
                     <>
@@ -346,34 +495,26 @@ export default function SetProduct() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {raws.map((r, i) => (
-                            <TableRow key={`${r.materialId}-${r.id}-${i}`}>
+                          {v.rawMaterials.map((rm, i) => (
+                            <TableRow key={`${rm.materialId}-${rm.id}-${i}`}>
                               <TableCell className="font-medium">
                                 {i + 1}
                               </TableCell>
                               <TableCell>
-                                {r.size}/{r.color}
+                                {rm.size}/{rm.color}
                               </TableCell>
                               <TableCell>
                                 <Input
                                   type="number"
-                                  value={r.unitPrice}
-                                  onChange={(e) => {
-                                    const price =
-                                      parseFloat(e.target.value) || 0;
-                                    setRaws((prev) =>
-                                      prev.map((item, idx) =>
-                                        idx === i
-                                          ? {
-                                              ...item,
-                                              unitPrice: price,
-                                              total:
-                                                item.quantityOrdered * price,
-                                            }
-                                          : item
-                                      )
-                                    );
-                                  }}
+                                  value={rm.unitPrice}
+                                  onChange={(e) =>
+                                    updateRawCell(
+                                      v.id,
+                                      i,
+                                      "unitPrice",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
                                   className="w-28"
                                   min={0}
                                   step="0.01"
@@ -382,35 +523,31 @@ export default function SetProduct() {
                               <TableCell>
                                 <Input
                                   type="number"
-                                  value={r.quantityOrdered}
-                                  onChange={(e) => {
-                                    const qty = parseFloat(e.target.value) || 0;
-                                    setRaws((prev) =>
-                                      prev.map((item, idx) =>
-                                        idx === i
-                                          ? {
-                                              ...item,
-                                              quantityOrdered: qty,
-                                              total: qty * item.unitPrice,
-                                            }
-                                          : item
-                                      )
-                                    );
-                                  }}
+                                  value={rm.quantityOrdered}
+                                  onChange={(e) =>
+                                    updateRawCell(
+                                      v.id,
+                                      i,
+                                      "quantityOrdered",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
                                   className="w-24"
                                   min={0}
                                 />
                               </TableCell>
 
                               <TableCell className="font-semibold">
-                                {currency(r.total)}
+                                {currency(
+                                  rm.total ?? rm.quantityOrdered * rm.unitPrice
+                                )}
                               </TableCell>
                               <TableCell className="text-center">
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => removeRaw(i)}
+                                  onClick={() => removeRawFromVariant(v.id, i)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -423,25 +560,52 @@ export default function SetProduct() {
                       <Separator />
                       <div className="flex justify-end text-sm mt-2">
                         <div className="rounded-lg border px-3 py-1">
-                          Total:{" "}
-                          <span className="font-bold">
-                            {currency(productTotal)}
-                          </span>
+                          Variant Total:{" "}
+                          <span className="font-bold">{currency(v.total)}</span>
                         </div>
                       </div>
                     </>
                   )}
                 </div>
-              </>
-            }
-            <div className="flex justify-end gap-2">
-              <Button type="submit" disabled={!canSubmit || submitting}>
-                {submitting
-                  ? "Saving..."
-                  : id
-                  ? "Update Product"
-                  : "Create Product"}
-              </Button>
+
+                {/* Remove variant button */}
+                {variants.length > 1 ? (
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => removeVariant(v.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Variant
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+
+            {/* Product total & submit */}
+            <div className="flex items-center justify-between">
+              <div className="rounded-lg border px-3 py-2 text-sm">
+                Product Total:{" "}
+                <span className="font-bold">{currency(productTotal)}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => navigate("/products")}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={!canSubmit || submitting}>
+                  {submitting
+                    ? "Saving..."
+                    : id
+                    ? "Update Product"
+                    : "Create Product"}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

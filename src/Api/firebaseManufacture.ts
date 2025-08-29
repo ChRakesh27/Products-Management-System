@@ -21,6 +21,7 @@ const colRef = collection(db, COL);
 export const manufacturesAPI = {
     async getAll(): Promise<ManufactureModel[]> {
         const q = query(colRef, orderBy("createdAt", "desc"));
+
         const snap = await getDocs(q);
         return snap.docs.map((d) => ({ id: d.id, ...(d.data() as ManufactureModel) }));
     },
@@ -37,6 +38,7 @@ export const manufacturesAPI = {
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
         };
+
         const ref = await addDoc(colRef, payload);
         return { id: ref.id };
     },

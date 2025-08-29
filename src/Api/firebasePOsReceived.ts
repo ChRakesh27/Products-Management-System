@@ -51,6 +51,11 @@ export const poReceivedAPI = {
     async create(input: Omit<POEntry, "createdAt" | "updatedAt">): Promise<any> {
         const products = await Promise.all(input.products.map(async (item: any) => {
             item.poNumber = input.poNumber;
+            item.variants = item.variants.map(v => ({
+                ...v,
+                description: "",
+                rawMaterials: []
+            }))
             const res = await productsAPI.create(item)
             return res.id;
         }))
@@ -76,6 +81,11 @@ export const poReceivedAPI = {
                 return item.id
             } else {
                 item.poNumber = patch.poNumber;
+                item.variants = item.variants.map(v => ({
+                    ...v,
+                    description: "",
+                    rawMaterials: []
+                }))
                 const res = await productsAPI.create(item)
                 return res.id;
             }

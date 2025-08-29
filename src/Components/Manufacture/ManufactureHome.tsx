@@ -33,7 +33,7 @@ export default function ManufactureHome() {
     const term = q.trim().toLowerCase();
     if (!term) return rows;
     return rows.filter((r) =>
-      [r.remarks, r.productId].some((f) =>
+      [r.remarks, r.poNumber].some((f) =>
         (f ?? "").toLowerCase().includes(term)
       )
     );
@@ -74,7 +74,7 @@ export default function ManufactureHome() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
+                <TableHead>PoNumber</TableHead>
                 <TableHead>Planned Units</TableHead>
                 <TableHead>Start</TableHead>
                 <TableHead>End</TableHead>
@@ -101,7 +101,7 @@ export default function ManufactureHome() {
                     }}
                     className="cursor-pointer"
                   >
-                    <TableCell className="font-medium">{r.productId}</TableCell>
+                    <TableCell className="font-medium">{r.poNumber}</TableCell>
                     <TableCell>{r.planedUnits}</TableCell>
                     <TableCell>{toDateStr(r.startDate)}</TableCell>
                     <TableCell>{toDateStr(r.endDate)}</TableCell>

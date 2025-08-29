@@ -1,15 +1,16 @@
 // src/components/manufactures/ManufactureUpsert.tsx
-import { Timestamp } from "firebase/firestore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import { manufacturesAPI } from "../../Api/firebaseManufacture";
-import { productsAPI } from "../../Api/firebaseProducts";
-import DateFormate from "../../Constants/DateFormate";
-import type { ProductModel } from "../../Model/ProductModel";
+import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+
+import type { ManufactureModel } from "../../Model/DailyProductionModel";
+
+import type { POEntry } from "../../Model/POEntry";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DatePicker } from "../ui/DatePicker";
-import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -21,36 +22,42 @@ import {
 import { Textarea } from "../ui/textarea";
 import ToastMSG from "../ui/Toaster";
 
-export default function SetManufactureHome() {
+export default function ManufactureUpsert() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
 
-  // Form state
-  const [productId, setProductId] = useState("");
-  const [planedUnits, setPlanedUnits] = useState<number>(0);
-  const [startDate, setStartDate] = useState<string>(""); // yyyy-mm-dd
-  const [endDate, setEndDate] = useState<string>("");
-  const [remarks, setRemarks] = useState("");
-
-  const [products, setProducts] = useState<ProductModel[]>([]);
+  // PO list for dropdown
+  const [poList, setPoList] = useState<POEntry[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
-  const canSubmit = useMemo(
-    () => productId.trim() && planedUnits > 0 && startDate.length > 0,
-    [productId, planedUnits, startDate]
-  );
+  // SINGLE state object for the whole form
+  const [manufacture, setManufacture] = useState<ManufactureModel>({
+    products: [],
+    poNumber: "",
+    poId: "",
+    remarks: "",
+    startDate: null,
+    endDate: null,
+    planedUnits: 0,
+  });
 
-  // Load products for selection
+  // Helpers to update single state
+  const setField = <K extends keyof ManufactureModel>(
+    key: K,
+    value: ManufactureModel[K]
+  ) => setManufacture((prev) => ({ ...prev, [key]: value }));
+
+  // Load POs for selection
   useEffect(() => {
     (async () => {
-      const list: ProductModel[] = await productsAPI.getAll();
-      setProducts(list);
+      const list = await poReceivedAPI.getAll();
+      setPoList(list as unknown as POEntry[]);
     })();
   }, []);
 
-  // If editing, load manufacture
+  // If editing, load the manufacture and normalize dates to Date
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -62,11 +69,7 @@ export default function SetManufactureHome() {
           navigate("/manufactures");
           return;
         }
-        setProductId(doc.productId);
-        setPlanedUnits(Number(doc.planedUnits || 0));
-        setRemarks(doc.remarks || "");
-        setStartDate(DateFormate(doc.startDate, "YYYY-MM-DD"));
-        setEndDate(DateFormate(doc.endDate, "YYYY-MM-DD"));
+        setManufacture(doc);
       } catch (e) {
         console.error(e);
         ToastMSG?.("error", "Failed to load manufacture");
@@ -76,29 +79,18 @@ export default function SetManufactureHome() {
     })();
   }, [id, navigate]);
 
+  const canSubmit = Boolean(manufacture.poId);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-
     try {
       setSaving(true);
       if (isEdit && id) {
-        await manufacturesAPI.update(id, {
-          productId,
-          planedUnits,
-          remarks,
-          startDate: startDate ? Timestamp.fromDate(new Date(startDate)) : null,
-          endDate: endDate ? Timestamp.fromDate(new Date(endDate)) : null,
-        });
+        await manufacturesAPI.update(id, manufacture);
         ToastMSG?.("success", "Manufacture updated");
       } else {
-        await manufacturesAPI.create({
-          productId,
-          planedUnits,
-          remarks,
-          startDate: startDate ? Timestamp.fromDate(new Date(startDate)) : null,
-          endDate: endDate ? Timestamp.fromDate(new Date(endDate)) : null,
-        });
+        await manufacturesAPI.create(manufacture);
         ToastMSG?.("success", "Manufacture created");
       }
       navigate("/manufactures");
@@ -109,6 +101,16 @@ export default function SetManufactureHome() {
       setSaving(false);
     }
   };
+
+  function onSelectPo(poId) {
+    const selectedPo = poList.find((p) => p.id == poId);
+    setManufacture((prev) => ({
+      ...prev,
+      poId: poId,
+      poNumber: selectedPo.poNumber,
+      products: selectedPo.products as [],
+    }));
+  }
 
   if (loading) {
     return (
@@ -128,64 +130,59 @@ export default function SetManufactureHome() {
             {isEdit ? "Edit Manufacture" : "Create Manufacture"}
           </CardTitle>
         </CardHeader>
+
         <CardContent className="grid gap-6">
+          {/* Select PO */}
           <div className="grid gap-2">
-            <Label>Product *</Label>
-            <Select value={productId} onValueChange={setProductId}>
+            <Label>Select PO *</Label>
+            <Select
+              value={manufacture.poId || ""}
+              onValueChange={(v) => {
+                onSelectPo(v);
+              }}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select product" />
+                <SelectValue placeholder="Select PO" />
               </SelectTrigger>
               <SelectContent>
-                {products.map((p) => (
+                {poList.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.name}
+                    {p.poNumber || p.id}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="grid gap-2">
-            <Label>Planned Units *</Label>
-            <Input
-              type="number"
-              value={planedUnits}
-              min={1}
-              onChange={(e) => setPlanedUnits(Number(e.target.value) || 0)}
-              placeholder="e.g., 500"
-            />
-          </div>
-
+          {/* Dates */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Start Date *</Label>
               <DatePicker
-                date={startDate}
-                setDate={async (d: string) => {
-                  setStartDate(d);
-                }}
+                date={manufacture.startDate as any}
+                setDate={(d) => setField("startDate", d ?? null)}
               />
             </div>
             <div className="grid gap-2">
               <Label>End Date</Label>
               <DatePicker
-                date={endDate}
-                setDate={async (d: string) => {
-                  setEndDate(d);
-                }}
+                date={manufacture.endDate as any}
+                setDate={(d) => setField("endDate", d ?? null)}
               />
             </div>
           </div>
 
+          {/* Remarks */}
           <div className="grid gap-2">
             <Label>Remarks</Label>
             <Textarea
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
+              value={manufacture.remarks || ""}
+              onChange={(e) => setField("remarks", e.target.value)}
               placeholder="Notes / remarks…"
             />
           </div>
 
+          {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button
               type="button"

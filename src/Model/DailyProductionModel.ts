@@ -51,7 +51,9 @@ export interface DailyProductionModel {
 
 export interface ManufactureModel {
     id?: string;
-    productId: string;
+    products: string[];
+    poId: string;
+    poNumber: string;
     remarks: string;
     startDate: TimestampModel | null;
     endDate: TimestampModel | null;

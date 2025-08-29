@@ -2,6 +2,7 @@ import { Box, Clipboard, Factory, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { manufacturesAPI } from "../../Api/firebaseManufacture";
+import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import { productsAPI } from "../../Api/firebaseProducts";
 import { useLoading } from "../../context/LoadingContext";
 import Machine from "./Machine";
@@ -19,7 +20,8 @@ function Manufacture() {
       try {
         setLoading(true);
         const res = await manufacturesAPI.get(id);
-        const product = await productsAPI.get(res.productId);
+        const poRes = await poReceivedAPI.get(res.poId);
+        const product = await productsAPI.get(res.products[0]);
         setProduct(product);
       } catch (error) {
         console.log("🚀 ~ fetchProduct ~ error:", error);

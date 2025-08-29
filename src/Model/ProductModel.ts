@@ -1,26 +1,14 @@
 import type { TimestampModel } from "./Date";
+import type { RawMaterialVariantModel } from "./RawMaterial";
 
-
-interface RawMaterialModel {
+export interface variantModel {
     id: string;
-    variantId: string;
-    size: string;
-    color: string;
-    quantityOrdered: number;
-    quantityUsed: number;
-    unitPrice: number;
-    total: number;
-}
-
-interface variantModel {
-    id: string;
-    variantId: string;
     size: string;
     color: string;
     quantityOrdered: number;
     unitPrice: number;
     total: number;
-    rawMaterials: RawMaterialModel[]
+    rawMaterials: RawMaterialVariantModel[]
 }
 
 
