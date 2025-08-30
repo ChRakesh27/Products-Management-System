@@ -51,11 +51,13 @@ export const poReceivedAPI = {
     async create(input: Omit<POEntry, "createdAt" | "updatedAt">): Promise<any> {
         const products = await Promise.all(input.products.map(async (item: any) => {
             item.poNumber = input.poNumber;
-            item.variants = item.variants.map(v => ({
-                ...v,
-                description: "",
-                rawMaterials: []
-            }))
+            item.rawMaterials = []
+            item.totalRaw = 0
+            item.createdAt = serverTimestamp();
+            item.updatedAt = serverTimestamp();
+            item.productionQty = 0;
+            item.deliveryDate = input.deliveryDate;
+            delete item.quantityUsed
             const res = await productsAPI.create(item)
             return res.id;
         }))
@@ -76,16 +78,18 @@ export const poReceivedAPI = {
 
     async update(id: string, patch: Partial<POEntry>): Promise<void> {
         const products = await Promise.all(patch.products.map(async (item: any) => {
+            item.updatedAt = serverTimestamp();
+            item.deliveryDate = patch.deliveryDate;
+            delete item.quantityUsed
             if (item.id) {
                 await productsAPI.update(item.id, item)
                 return item.id
             } else {
                 item.poNumber = patch.poNumber;
-                item.variants = item.variants.map(v => ({
-                    ...v,
-                    description: "",
-                    rawMaterials: []
-                }))
+                item.rawMaterials = []
+                item.totalRaw = 0
+                item.productionQty = 0;
+                item.createdAt = serverTimestamp();
                 const res = await productsAPI.create(item)
                 return res.id;
             }

@@ -1,11 +1,9 @@
-import { ArrowRight, PackageSearch, Plus } from "lucide-react";
+import { PackageSearch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { materialsAPI } from "../../Api/firebaseRawMaterial";
 import currency from "../../Constants/Currency";
 import type { RawMaterialModel } from "../../Model/RawMaterial";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import {
@@ -16,12 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-
-export const sumProduct = (p: RawMaterialModel) =>
-  p.variants.reduce(
-    (s, v) => s + (Number(v.quantityOrdered) || 0) * (Number(v.unitPrice) || 0),
-    0
-  );
 
 export default function RawMaterialsList() {
   const nav = useNavigate();
@@ -45,9 +37,9 @@ export default function RawMaterialsList() {
     <div className="mx-auto max-w-6xl p-6 space-y-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Raw Materials</h1>
-        <Button onClick={() => nav("/materials/new")}>
+        {/* <Button onClick={() => nav("/materials/new")}>
           <Plus className="mr-2 h-4 w-4" /> Add Material
-        </Button>
+        </Button> */}
       </div>
 
       <Card>
@@ -74,34 +66,40 @@ export default function RawMaterialsList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%]">Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Variants</TableHead>
-                    <TableHead className="text-right">Total Value</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Color</TableHead>
+                    <TableHead className="text-right">Total Qty</TableHead>
+                    <TableHead className="text-right">Used Qty</TableHead>
+                    <TableHead className="text-right">Current Qty</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((p) => (
-                    <TableRow key={p.id} className="hover:bg-muted/50">
+                    <TableRow
+                      key={p.id}
+                      className="hover:bg-muted/50 cursor-pointer"
+                      onClick={() => nav(`/materials/${p.id}`)}
+                    >
                       <TableCell className="font-medium">{p.name}</TableCell>
-                      <TableCell className="truncate max-w-[300px]">
-                        {p.description}
+                      <TableCell>{p.size}</TableCell>
+                      <TableCell>{p.color}</TableCell>
+                      <TableCell className="text-right">
+                        {p.quantityOrdered}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Badge variant="secondary">{p.variants.length}</Badge>
+                        {p.quantityUsed || 0}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {(p.quantityOrdered || 0) - (p.quantityUsed || 0)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {currency(p.unitPrice)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {currency(sumProduct(p))}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => nav(`/materials/${p.id}`)}
-                        >
-                          View <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                        {currency(p.total)}
                       </TableCell>
                     </TableRow>
                   ))}

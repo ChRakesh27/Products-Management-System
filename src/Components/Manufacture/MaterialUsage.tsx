@@ -1,4 +1,5 @@
-import { Box, Info, Save, Trash2 } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
+import { Box, Info, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   getDailyDocByDate,
@@ -11,19 +12,25 @@ import ToastMSG from "../ui/Toaster";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
-function MaterialUsage({ product }) {
+function MaterialUsage({ productData, products }) {
+  console.log(
+    "🚀 ~ MaterialUsage ~ productData, products :",
+    productData,
+    products
+  );
   const [materialData, setMaterialData] = useState([]);
   const [saving, setSaving] = useState(false);
   const { setLoading } = useLoading();
-  const currentDate = new Date();
-  const d =
-    currentDate.getFullYear() +
-    "-" +
-    String(currentDate.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(currentDate.getDate()).padStart(2, "0");
-  const [date, setDate] = useState<string>(d);
+  const [date, setDate] = useState(Timestamp.now());
 
   const removeRow = (index: number) => {
     setMaterialData((prev) => prev.filter((_, i) => i !== index));
@@ -95,7 +102,7 @@ function MaterialUsage({ product }) {
         const existing = await getDailyDocByDate(date);
 
         if (existing?.materials) {
-          const data = product.rawMaterials.map((ele) => {
+          const data = productData.rawMaterials.map((ele) => {
             const materialData = existing.materials.find(
               (mEle) => mEle?.id == ele.id
             );
@@ -109,7 +116,7 @@ function MaterialUsage({ product }) {
           });
           setMaterialData(data);
         } else {
-          const data = product.rawMaterials.map((ele) => ({
+          const data = productData.rawMaterials.map((ele) => ({
             ...ele,
             used: 0,
             wastage: 0,
@@ -124,7 +131,7 @@ function MaterialUsage({ product }) {
         setLoading(false);
       }
     }
-    fetchData();
+    // fetchData();
   }, [date]);
 
   return (
@@ -142,7 +149,7 @@ function MaterialUsage({ product }) {
             <Label>Date *</Label>
             <DatePicker
               date={date}
-              setDate={async (d: string) => {
+              setDate={async (d) => {
                 setDate(d);
               }}
             />
@@ -164,7 +171,7 @@ function MaterialUsage({ product }) {
             </Button> */}
           </div>
 
-          {materialData.map((material, index) => (
+          {/* {materialData.map((material, index) => (
             <div
               key={index}
               className="bg-gray-50 rounded-lg p-6 border border-gray-200"
@@ -234,7 +241,66 @@ function MaterialUsage({ product }) {
                 </div>
               </div>
             </div>
-          ))}
+          ))} */}
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>product Name</TableHead>
+                <TableHead>material Name</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead>Quantity Used</TableHead>
+                <TableHead>Wastage</TableHead>
+                <TableHead>Notes</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((p) =>
+                p.variants?.[0]?.rawMaterials.map((rm, i) => (
+                  <TableRow key={rm.id}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell>{p.name || "-"}</TableCell>
+                    <TableCell>{rm.name || "-"}</TableCell>
+                    <TableCell>{rm.size || "-"}</TableCell>
+                    <TableCell>{rm.color || "-"}</TableCell>
+                    <TableCell>
+                      {" "}
+                      <Input
+                        type="number"
+                        // value={material.unit}
+                        // onChange={(e) =>
+                        //   updateRow(index, "unit", e.target.value)
+                        // }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        // value={material.unit}
+                        // onChange={(e) =>
+                        //   updateRow(index, "unit", e.target.value)
+                        // }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      <Input
+                        type="text"
+                        // value={material.unit}
+                        // onChange={(e) =>
+                        //   updateRow(index, "unit", e.target.value)
+                        // }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
 

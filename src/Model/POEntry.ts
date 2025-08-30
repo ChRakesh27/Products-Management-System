@@ -11,8 +11,7 @@ export interface POEntry {
     paymentStatus: string;
     remarks: string;
     totalAmount: number;
-    status: string;
-    createdAt: TimestampModel;
-    updatedAt: TimestampModel;
+    createdAt?: TimestampModel;
+    updatedAt?: TimestampModel;
 
 }

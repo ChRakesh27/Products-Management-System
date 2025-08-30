@@ -9,6 +9,7 @@ import SetPo from "../POManagement/SetPo";
 import Products from "../Products/Products";
 import SetProduct from "../Products/SetProduct";
 import RawMaterialsList from "../RawMaterials/RawMaterialsList";
+import { RawMaterialView } from "../RawMaterials/RawMaterialView";
 import SetRawMaterial from "../RawMaterials/SetRawMaterial";
 import { SidebarProvider } from "../ui/sidebar";
 import { VendorList } from "../Vendor/VendorList";
@@ -74,7 +75,7 @@ function Home() {
               {/* <Route path="/products/:id/edit" element={<SetProduct />} /> */}
               <Route path="/materials" element={<RawMaterialsList />} />
               <Route path="/materials/new" element={<SetRawMaterial />} />
-              <Route path="/materials/:id" element={<SetRawMaterial />} />
+              <Route path="/materials/:id" element={<RawMaterialView />} />
               {/* <Route path="/materials/:id/edit" element={<SetRawMaterial />} /> */}
               <Route path="/manufactures" element={<ManufactureHome />} />
               <Route

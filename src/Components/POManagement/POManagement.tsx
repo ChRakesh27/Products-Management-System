@@ -1,6 +1,4 @@
-import { deleteDoc, doc } from "firebase/firestore";
 import {
-  Bell,
   Calendar,
   CheckCircle,
   Circle,
@@ -13,7 +11,6 @@ import {
   Scissors,
   Search,
   Settings,
-  Trash2,
   Truck,
   X,
 } from "lucide-react";
@@ -23,9 +20,7 @@ import { poGivenAPI } from "../../Api/firebasePOsGiven";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
-import { db } from "../../firebase";
 import type { POEntry } from "../../Model/POEntry";
-import ToastMSG from "../ui/Toaster";
 
 const POManagement = ({ field }) => {
   const { setLoading } = useLoading();
@@ -37,15 +32,18 @@ const POManagement = ({ field }) => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentView, setCurrentView] = useState("list");
   const navigate = useNavigate();
+
   // Filter purchase orders
   const filteredPOs = purchaseOrders.filter((po) => {
     const matchesSearch =
       po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       po.supplier.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = filterStatus === "all" || po.status === filterStatus;
+    const matchesStatus =
+      filterStatus === "all" || po.paymentStatus === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
   // Calculate stats
   const totalPOs = purchaseOrders.length;
   const totalValue = purchaseOrders.reduce(
@@ -53,13 +51,13 @@ const POManagement = ({ field }) => {
     0
   );
   const pendingCount = purchaseOrders.filter(
-    (po) => po.status === "Pending"
+    (po) => po.paymentStatus === "Pending"
   ).length;
   const inProductionCount = purchaseOrders.filter(
-    (po) => po.status === "In Production"
+    (po) => po.paymentStatus === "In Production"
   ).length;
   const completedCount = purchaseOrders.filter(
-    (po) => po.status === "Completed"
+    (po) => po.paymentStatus === "Completed"
   ).length;
 
   const getStatusColor = (status: string) => {
@@ -89,25 +87,6 @@ const POManagement = ({ field }) => {
         return <X className="w-4 h-4 text-red-600" />;
       default:
         return <Circle className="w-4 h-4 text-gray-400" />;
-    }
-  };
-
-  const deletePO = async (poId: string) => {
-    if (
-      !window.confirm("Are you sure you want to delete this Purchase Order?")
-    ) {
-      return;
-    }
-    try {
-      setLoading(true);
-      await deleteDoc(doc(db, "poManagement", poId));
-      setPurchaseOrders(purchaseOrders.filter((po) => po.id !== poId));
-      ToastMSG("success", "Successfully delete the PO");
-    } catch (error) {
-      ToastMSG("error", "Failed to delete the PO");
-      console.log("🚀 ~ deletePO ~ error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -141,28 +120,19 @@ const POManagement = ({ field }) => {
           <h4 className="font-semibold text-gray-900 text-lg">{po.poNumber}</h4>
           <p className="text-sm text-gray-600 mt-1">{po.buyerName}</p>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            // onClick={() => deletePO(po.id)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete PO"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span
             className={`px-3 py-1 rounded-lg text-xs font-medium border ${getStatusColor(
-              po.status
+              po.paymentStatus
             )}`}
           >
-            {po.status.charAt(0).toUpperCase() +
-              po.status.slice(1).replace("-", " ")}
+            {po.paymentStatus.charAt(0).toUpperCase() +
+              po.paymentStatus.slice(1).replace("-", " ")}
           </span>
-          {getStatusIcon(po.status)}
+          {getStatusIcon(po.paymentStatus)}
         </div>
         <div className="text-lg font-semibold text-gray-900">
           ${po.totalAmount.toFixed(2)}
@@ -188,13 +158,11 @@ const POManagement = ({ field }) => {
       <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
         <div className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
-          <span>PO: {new Date(po.poDate).toLocaleDateString()}</span>
+          <span>PO: {DateFormate(po.poDate)}</span>
         </div>
         <div className="flex items-center gap-1">
           <Truck className="w-3 h-3" />
-          <span>
-            Delivery: {new Date(po.deliveryDate).toLocaleDateString()}
-          </span>
+          <span>Delivery: {DateFormate(po.poDate)}</span>
         </div>
       </div>
     </div>
@@ -222,9 +190,6 @@ const POManagement = ({ field }) => {
                 className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
@@ -422,7 +387,7 @@ const POManagement = ({ field }) => {
                   <div className="grid grid-cols-11 gap-4 items-center">
                     <div className="col-span-3">
                       <div className="flex items-center gap-3">
-                        {getStatusIcon(po.status)}
+                        {getStatusIcon(po.paymentStatus)}
                         <div>
                           <h4 className="font-semibold text-gray-900">
                             {po.poNumber}
@@ -441,11 +406,11 @@ const POManagement = ({ field }) => {
                     <div className="col-span-2">
                       <span
                         className={`px-3 py-1 rounded-lg text-xs font-medium border ${getStatusColor(
-                          po.status
+                          po.paymentStatus
                         )}`}
                       >
-                        {po.status.charAt(0).toUpperCase() +
-                          po.status.slice(1).replace("-", " ")}
+                        {po.paymentStatus.charAt(0).toUpperCase() +
+                          po.paymentStatus.slice(1).replace("-", " ")}
                       </span>
                     </div>
                     <div className="col-span-2">

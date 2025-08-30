@@ -14,17 +14,6 @@ import {
 // Menu items.
 const items = [
   {
-    title: "POs Given ",
-    url: "/po-given",
-    icon: Home,
-  },
-  {
-    title: "Materials",
-    url: "/materials",
-    icon: Calendar,
-  },
-
-  {
     title: "POs Received",
     url: "/po-received",
     icon: Home,
@@ -34,7 +23,16 @@ const items = [
     url: "/products",
     icon: Inbox,
   },
-
+  {
+    title: "POs Given ",
+    url: "/po-given",
+    icon: Home,
+  },
+  {
+    title: "Materials",
+    url: "/materials",
+    icon: Calendar,
+  },
   {
     title: "Work order",
     url: "/manufactures",

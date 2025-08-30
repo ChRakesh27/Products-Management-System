@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { materialsAPI } from "../../Api/firebaseRawMaterial";
@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { sumProduct } from "./RawMaterialsList";
 
 export function RawMaterialView() {
   const nav = useNavigate();
@@ -39,20 +38,18 @@ export function RawMaterialView() {
     );
   }
 
-  const total = sumProduct(item);
-
   return (
     <div className="mx-auto max-w-5xl p-6 space-y-6">
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => nav(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button
+        {/* <Button
           variant="outline"
           onClick={() => nav(`/materials/${item.id}/edit`)}
         >
           <Pencil className="mr-2 h-4 w-4" /> Edit
-        </Button>
+        </Button> */}
       </div>
 
       <Card>
@@ -62,7 +59,7 @@ export function RawMaterialView() {
             <span className="text-base font-normal text-muted-foreground">
               Total:{" "}
               <span className="font-semibold text-foreground">
-                {currency(total)}
+                {currency(item.total)}
               </span>
             </span>
           </CardTitle>
@@ -84,30 +81,25 @@ export function RawMaterialView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {item.variants.map((v, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{v.size}</TableCell>
-                    <TableCell>{v.color}</TableCell>
-                    <TableCell className="text-right">
-                      {v.quantityOrdered}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {v.quantityUsed}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {v.quantityOrdered - v.quantityUsed}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {currency(v.unitPrice)}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {currency(
-                        (Number(v.quantityOrdered) || 0) *
-                          (Number(v.unitPrice) || 0)
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <TableRow>
+                  <TableCell>{item.size}</TableCell>
+                  <TableCell>{item.color}</TableCell>
+                  <TableCell className="text-right">
+                    {item.quantityOrdered}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {item.quantityUsed || 0}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {(item.quantityOrdered || 0) - (item.quantityUsed || 0)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {currency(item.unitPrice)}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {currency(item.total)}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>

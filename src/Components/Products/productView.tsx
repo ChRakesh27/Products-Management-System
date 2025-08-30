@@ -1,7 +1,6 @@
 // pages/products/ProductViewPage.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { productsAPI } from "../../Api/firebaseProducts";
 import type { ProductModel } from "../../Model/ProductModel";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -14,18 +13,18 @@ export default function ProductView() {
   const [item, setItem] = useState<PDoc | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!id) return;
-      const doc = await productsAPI.get(id);
-      if (mounted) setItem(doc);
-      setLoading(false);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
+  // useEffect(() => {
+  //   let mounted = true;
+  //   (async () => {
+  //     if (!id) return;
+  //     const doc = await productsAPI.get(id);
+  //     if (mounted) setItem(doc);
+  //     setLoading(false);
+  //   })();
+  //   return () => {
+  //     mounted = false;
+  //   };
+  // }, [id]);
 
   if (loading) {
     return <div className="max-w-4xl mx-auto">Loading...</div>;
@@ -75,7 +74,7 @@ export default function ProductView() {
           {item.rawMaterials?.length ? (
             item.rawMaterials.map((r, idx) => (
               <div
-                key={`${r.id}-${r.variantId}-${idx}`}
+                key={`${r.id}-${idx}`}
                 className="rounded-lg border p-3 grid gap-1"
               >
                 <div className="flex items-center justify-between">
@@ -85,14 +84,11 @@ export default function ProductView() {
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Qty: <span className="font-medium">{r.quantityOrdered}</span>{" "}
-                  × ₹{r.unitPrice} ={" "}
+                  Qty: <span className="font-medium">{r.quantity}</span> × ₹
+                  {r.unitPrice} ={" "}
                   <span className="font-semibold text-foreground">
                     ₹{r.total.toFixed(2)}
                   </span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Used: {r.quantityUsed}
                 </div>
               </div>
             ))

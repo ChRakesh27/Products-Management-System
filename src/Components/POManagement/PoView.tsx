@@ -1,4 +1,4 @@
-import { doc, Timestamp, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { poGivenAPI } from "../../Api/firebasePOsGiven";
@@ -8,6 +8,14 @@ import { useLoading } from "../../context/LoadingContext";
 import { db } from "../../firebase";
 import type { POEntry } from "../../Model/POEntry";
 import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import ToastMSG from "../ui/Toaster";
 
 const PoView = ({ field }) => {
@@ -19,12 +27,11 @@ const PoView = ({ field }) => {
   const updatePOStatus = async (newStatus) => {
     try {
       await updateDoc(doc(db, "poManagement", id), {
-        status: newStatus,
-        updatedAt: Timestamp.now(),
+        paymentStatus: newStatus,
       });
       setPODetails({
         ...PODetails,
-        status: newStatus,
+        paymentStatus: newStatus,
       });
       ToastMSG("success", "Successfully updated the Status");
     } catch (error) {
@@ -56,10 +63,28 @@ const PoView = ({ field }) => {
         <h3 className="text-xl font-semibold text-gray-900">
           Purchase Order Details
         </h3>
-        <div className="">
-          <Button variant="outline" onClick={() => navigate("edit")}>
-            Edit
-          </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
+            <Label className="m-0">Status :</Label>
+            <Select
+              value={PODetails?.paymentStatus}
+              onValueChange={(val) => updatePOStatus(val)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Paid">Paid</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="UnPaid">UnPaid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="">
+            <Button variant="outline" onClick={() => navigate("edit")}>
+              Edit
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -109,25 +134,6 @@ const PoView = ({ field }) => {
                 ${PODetails?.totalAmount.toFixed(2)}
               </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <div className="flex items-center gap-4">
-                <select
-                  value={PODetails?.status}
-                  onChange={(e) => {
-                    // updatePOStatus(e.target.value);
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="In Production">In Production</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -168,23 +174,19 @@ const PoView = ({ field }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {item.variants.map((variant, vi) => (
-                        <tr key={vi} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 border-b">
-                            {variant.color}
-                          </td>
-                          <td className="px-4 py-2 border-b">{variant.size}</td>
-                          <td className="px-4 py-2 border-b text-center">
-                            {variant.quantityOrdered}
-                          </td>
-                          <td className="px-4 py-2 border-b text-center">
-                            ₹ {variant.unitPrice.toFixed(2)}
-                          </td>
-                          <td className="px-4 py-2 border-b text-right font-medium text-gray-900">
-                            ₹ {variant.total.toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border-b">{item.color}</td>
+                        <td className="px-4 py-2 border-b">{item.size}</td>
+                        <td className="px-4 py-2 border-b text-center">
+                          {item.quantityOrdered}
+                        </td>
+                        <td className="px-4 py-2 border-b text-center">
+                          ₹ {item.unitPrice.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-2 border-b text-right font-medium text-gray-900">
+                          ₹ {item.total.toFixed(2)}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -193,10 +195,7 @@ const PoView = ({ field }) => {
                 <div className="text-right mt-4">
                   <p className="text-sm text-gray-600">Style Total</p>
                   <p className="text-lg font-bold text-green-600">
-                    ₹{" "}
-                    {item.variants
-                      .reduce((sum, v) => sum + (v.total || 0), 0)
-                      .toFixed(2)}
+                    ₹ {item.total.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -210,9 +209,9 @@ const PoView = ({ field }) => {
             <h5 className="font-medium text-gray-900 mb-3">Payment Status</h5>
             <span
               className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                PODetails?.paymentStatus === "paid"
+                PODetails?.paymentStatus === "Paid"
                   ? "bg-green-100 text-green-700"
-                  : PODetails?.paymentStatus === "pending"
+                  : PODetails?.paymentStatus === "Pending"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-red-100 text-red-700"
               }`}

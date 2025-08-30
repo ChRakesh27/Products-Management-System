@@ -30,8 +30,8 @@ const tsForISODate = (yyyyMmDd: string) => {
 
 
 // find doc for a given ISO date
-export async function getDailyDocByDate(yyyyMmDd: string) {
-    const dateTS = tsForISODate(yyyyMmDd);
+export async function getDailyDocByDate(dateTS) {
+    // const dateTS = tsForISODate(yyyyMmDd);
     const q = query(col, where("date", "==", dateTS), limit(1));
     const snap = await getDocs(q);
     if (snap.empty) return null;
@@ -51,8 +51,8 @@ async function createDailyDoc(payload: DailyProductionModel) {
 }
 
 // update machines for date (non-destructive to other fields)
-export async function upsertDailyProductionForDate(yyyyMmDd: string, field: string, value: unknown) {
-    const existing = await getDailyDocByDate(yyyyMmDd);
+export async function upsertDailyProductionForDate(dateTS, field: string, value: unknown) {
+    const existing = await getDailyDocByDate(dateTS);
 
     if (existing?.id) {
         const ref = doc(db, COLLECTION, existing.id);
@@ -64,7 +64,7 @@ export async function upsertDailyProductionForDate(yyyyMmDd: string, field: stri
         return { id: existing.id, ...(fresh.data() as DailyProductionModel) };
     }
     const payload: DailyProductionModel = {
-        date: tsForISODate(yyyyMmDd),
+        date: dateTS,
         production: {},
         materials: [],
         machines: [],
