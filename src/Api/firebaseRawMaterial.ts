@@ -1,4 +1,3 @@
-// firebaseProducts.ts
 import {
     addDoc,
     collection,
@@ -10,79 +9,57 @@ import {
     query,
     Timestamp,
     updateDoc,
-    type DocumentData,
-    type FirestoreDataConverter,
-    type QueryDocumentSnapshot,
-    type SnapshotOptions,
-    type UpdateData,
-    type WithFieldValue
+    type WithFieldValue,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { RawMaterialModel } from "../Model/RawMaterial";
 
+const COLLECTION = "poRawMaterials";
+const rawMaterialsCol = collection(db, COLLECTION);
 
+function formatNumber(prefix, num) {
+    return prefix + "-" + String(num).padStart(5, "0");
+}
 
-// If you prefer stricter create types
-export type MaterialCreate = Omit<RawMaterialModel, "id" | "createdAt" | "updatedAt">;
-
-// ----- Collection / converter --------------------------------------------
-const COLLECTION = "poRawMaterial";
-
-const materialConverter: FirestoreDataConverter<RawMaterialModel> = {
-    toFirestore(p: WithFieldValue<RawMaterialModel>): DocumentData {
-        const { id, ...rest } = p;
-        return rest;
-    },
-    fromFirestore(
-        snapshot: QueryDocumentSnapshot,
-        options: SnapshotOptions
-    ): RawMaterialModel {
-        const data = snapshot.data(options) as Omit<RawMaterialModel, "id">;
-        return {
-            id: snapshot.id,
-            ...data,
-        };
-    },
-};
-
-const materialsCol = collection(db, COLLECTION).withConverter(materialConverter);
-
-// ----- API ---------------------------------------------------------------
-export const materialsAPI = {
-    async getAll(): Promise<RawMaterialModel[]> {
-        const q = query(materialsCol, orderBy("createdAt", "desc"));
+export const rawMaterialsAPI = {
+    async list(): Promise<(RawMaterialModel & { id: string })[]> {
+        const q = query(rawMaterialsCol, orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        return snap.docs.map((d) => d.data());
+        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as RawMaterialModel) }));
     },
 
-    // Get one material by id
-    async get(id: string): Promise<RawMaterialModel | null> {
-        const ref = doc(db, COLLECTION, id).withConverter(materialConverter);
+    async get(id: string): Promise<RawMaterialModel & { id: string } | null> {
+        const ref = doc(db, COLLECTION, id);
         const snap = await getDoc(ref);
-        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+        return snap.exists() ? { id: snap.id, ...(snap.data() as RawMaterialModel) } : null;
     },
 
-    // Create a material
-    async create(input: MaterialCreate): Promise<RawMaterialModel> {
+    async create(input: Omit<RawMaterialModel, "id">) {
+        const querySnapshotMC = await getDocs(rawMaterialsCol);
+        let materialCount = (querySnapshotMC.size || 0) + 1
         const payload: WithFieldValue<RawMaterialModel> = {
             ...input,
+            uid: formatNumber("MA", materialCount),
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
         };
-        const ref = await addDoc(materialsCol, payload);
-        const fresh = await getDoc(ref); // to return with id + resolved fields
-        return fresh.data() as RawMaterialModel;
+        const ref = await addDoc(rawMaterialsCol, payload);
+        const fresh = { id: ref.id, ...payload };
+
+        return { id: ref.id, ...(fresh as RawMaterialModel) };
     },
 
-    // Update partial fields
-    async update(id: string, patch: UpdateData<RawMaterialModel>): Promise<void> {
-        const ref = doc(db, COLLECTION, id).withConverter(materialConverter);
+    async update(id: string, patch: Partial<RawMaterialModel>) {
+        const ref = doc(db, COLLECTION, id);
         await updateDoc(ref, { ...patch, updatedAt: Timestamp.now() });
     },
 
-    // Delete
-    async delete(id: string): Promise<void> {
+    async remove(id: string) {
         const ref = doc(db, COLLECTION, id);
         await deleteDoc(ref);
+    },
+    async getLogs(id) {
+        const snap = await getDocs(collection(rawMaterialsCol, id, "logs"));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
     },
 };

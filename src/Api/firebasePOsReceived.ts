@@ -12,10 +12,10 @@ import {
     updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { POEntry } from "../Model/POEntry";
+import type { POReceivedModel } from "../Model/POEntry";
+import type { ProductPoReceivedModel } from "../Model/ProductModel";
+import type { RawMaterialPoReceivedModel } from "../Model/RawMaterial";
 import { productsAPI } from "./firebaseProducts";
-
-
 
 // ---------- Firestore wiring ----------
 const COLLECTION = "poReceivedManagement"; // keep the same name you used elsewhere
@@ -29,46 +29,55 @@ export const poReceivedAPI = {
         return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     },
 
-    async get(id: string): Promise<POEntry | null> {
+    async get(id: string): Promise<POReceivedModel | null> {
         const ref = doc(db, COLLECTION, id);
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             return null
         }
         const data = snap.data()
-        const products = await Promise.all(data.products.map(async (pId) => {
-            const res = await productsAPI.get(pId)
-            return { id: res.id, ...res }
-        }))
+
         const payload = {
             id: snap.id,
             ...data,
-            products,
         }
-        return payload as POEntry;
+        return payload as POReceivedModel;
     },
 
-    async create(input: Omit<POEntry, "createdAt" | "updatedAt">): Promise<any> {
-        const products = await Promise.all(input.products.map(async (item: any) => {
-            item.poNumber = input.poNumber;
-            item.rawMaterials = []
-            item.totalRaw = 0
-            item.createdAt = serverTimestamp();
-            item.updatedAt = serverTimestamp();
-            item.productionQty = 0;
-            item.deliveryDate = input.deliveryDate;
-            delete item.quantityUsed
-            const res = await productsAPI.create(item)
-            return res.id;
-        }))
+    async create(input: Omit<POReceivedModel, "createdAt" | "updatedAt">): Promise<any> {
         const payload = {
             ...input,
-            products,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any,
         };
+
         const ref = await addDoc(poCol, payload);
-        return { id: ref.id }
+        for (const p of input.products) {
+            const pPayload: ProductPoReceivedModel = {
+                type: "PoReceived",
+                refId: ref.id,
+                poNo: input.poNo,
+                quantity: p.quantityOrdered,
+                unitPrice: p.unitPrice,
+                total: p.totalAmount,
+            }
+            await addDoc(collection(db, "poProducts", p.id, "logs"), pPayload);
+            for (const rm of p.rawMaterials) {
+                const qty = rm.quantity * p.quantityOrdered;
+                const rmPayload: RawMaterialPoReceivedModel = {
+                    type: "PoReceived",
+                    refId: ref.id,
+                    poNo: input.poNo,
+                    quantity: qty,
+                    estimatedPrice: rm.estimatedPrice,
+                    // poPrice:rm
+                    total: qty * rm.estimatedPrice,
+                }
+                await addDoc(collection(db, "poRawMaterials", rm.materialId, "logs"), rmPayload);
+            }
+        }
+
+        return { id: ref.id, ...payload }
     },
 
     async remove(id: string): Promise<void> {
@@ -76,7 +85,7 @@ export const poReceivedAPI = {
         await deleteDoc(ref);
     },
 
-    async update(id: string, patch: Partial<POEntry>): Promise<void> {
+    async update(id: string, patch: Partial<POReceivedModel>): Promise<void> {
         const products = await Promise.all(patch.products.map(async (item: any) => {
             item.updatedAt = serverTimestamp();
             item.deliveryDate = patch.deliveryDate;
@@ -85,7 +94,7 @@ export const poReceivedAPI = {
                 await productsAPI.update(item.id, item)
                 return item.id
             } else {
-                item.poNumber = patch.poNumber;
+                item.poNo = patch.poNo;
                 item.rawMaterials = []
                 item.totalRaw = 0
                 item.productionQty = 0;
@@ -98,6 +107,13 @@ export const poReceivedAPI = {
         await updateDoc(ref, {
             ...patch,
             products,
+            updatedAt: serverTimestamp() as any,
+        } as any);
+    },
+    async updateStatus(id: string, patch: Partial<POReceivedModel>): Promise<void> {
+        const ref = doc(db, COLLECTION, id)
+        await updateDoc(ref, {
+            ...patch,
             updatedAt: serverTimestamp() as any,
         } as any);
     },

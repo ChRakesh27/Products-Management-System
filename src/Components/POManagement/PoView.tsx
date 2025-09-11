@@ -1,13 +1,10 @@
-import { doc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { poGivenAPI } from "../../Api/firebasePOsGiven";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+import currency from "../../Constants/Currency";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
-import { db } from "../../firebase";
-import type { POEntry } from "../../Model/POEntry";
-import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -20,18 +17,18 @@ import ToastMSG from "../ui/Toaster";
 
 const PoView = ({ field }) => {
   const { id } = useParams();
-  const [PODetails, setPODetails] = useState<POEntry>(null);
+  const [PODetails, setPODetails] = useState(null);
   const { setLoading } = useLoading();
   const navigate = useNavigate();
 
-  const updatePOStatus = async (newStatus) => {
+  const updatePOStatus = async (newStatus, field) => {
     try {
-      await updateDoc(doc(db, "poManagement", id), {
-        paymentStatus: newStatus,
+      await (field == "given" ? poGivenAPI : poReceivedAPI).updateStatus(id, {
+        [field]: newStatus,
       });
       setPODetails({
         ...PODetails,
-        paymentStatus: newStatus,
+        [field]: newStatus,
       });
       ToastMSG("success", "Successfully updated the Status");
     } catch (error) {
@@ -44,9 +41,10 @@ const PoView = ({ field }) => {
     const fetchPOData = async () => {
       setLoading(true);
       try {
-        const data = (await (field == "given" ? poGivenAPI : poReceivedAPI).get(
+        const data = await (field == "given" ? poGivenAPI : poReceivedAPI).get(
           id
-        )) as POEntry;
+        );
+        console.log("🚀 ~ fetchPOData ~ data:", data);
         setPODetails(data);
       } catch (error) {
         console.log("🚀 ~ fetchPOData ~ error:", error);
@@ -67,8 +65,25 @@ const PoView = ({ field }) => {
           <div className="flex items-center gap-4">
             <Label className="m-0">Status :</Label>
             <Select
+              value={PODetails?.status}
+              onValueChange={(val) => updatePOStatus(val, "status")}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="In Production">In Production</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+                <SelectItem value="Cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-4">
+            <Label className="m-0">Payment :</Label>
+            <Select
               value={PODetails?.paymentStatus}
-              onValueChange={(val) => updatePOStatus(val)}
+              onValueChange={(val) => updatePOStatus(val, "paymentStatus")}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select status" />
@@ -80,11 +95,11 @@ const PoView = ({ field }) => {
               </SelectContent>
             </Select>
           </div>
-          <div className="">
+          {/* <div className="">
             <Button variant="outline" onClick={() => navigate("edit")}>
               Edit
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -97,14 +112,29 @@ const PoView = ({ field }) => {
                 PO Number
               </label>
               <p className="text-lg font-semibold text-gray-900">
-                {PODetails?.poNumber}
+                {PODetails?.poNo}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Buyer Name
+                Buyer
               </label>
-              <p className="text-lg text-gray-900">{PODetails?.supplier}</p>
+              <div>
+                <p className="text-lg text-gray-900">
+                  Name: {PODetails?.supplier?.name}
+                </p>
+                <p>Email: {PODetails?.supplier?.email}</p>
+                <p>Phone: {PODetails?.supplier?.phone}</p>
+                <p>GSTNo.: {PODetails?.supplier?.gstNumber}</p>
+                <p>
+                  Address:
+                  {PODetails?.supplier?.address}
+                  {PODetails?.supplier?.address && ", "}
+                  {PODetails?.supplier?.pinCode}
+                  {PODetails?.supplier?.pinCode && ", "}
+                  {PODetails?.supplier?.state}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -131,7 +161,7 @@ const PoView = ({ field }) => {
                 Total Amount
               </label>
               <p className="text-2xl font-bold text-green-600">
-                ${PODetails?.totalAmount.toFixed(2)}
+                ₹{PODetails?.totalAmount.toFixed(2)}
               </p>
             </div>
           </div>
@@ -181,10 +211,10 @@ const PoView = ({ field }) => {
                           {item.quantityOrdered}
                         </td>
                         <td className="px-4 py-2 border-b text-center">
-                          ₹ {item.unitPrice.toFixed(2)}
+                          {currency(item.unitPrice)}
                         </td>
                         <td className="px-4 py-2 border-b text-right font-medium text-gray-900">
-                          ₹ {item.total.toFixed(2)}
+                          {currency(item.totalAmount || item.total)}
                         </td>
                       </tr>
                     </tbody>
@@ -195,7 +225,7 @@ const PoView = ({ field }) => {
                 <div className="text-right mt-4">
                   <p className="text-sm text-gray-600">Style Total</p>
                   <p className="text-lg font-bold text-green-600">
-                    ₹ {item.total.toFixed(2)}
+                    {currency(item.totalAmount || item.total)}
                   </p>
                 </div>
               </div>

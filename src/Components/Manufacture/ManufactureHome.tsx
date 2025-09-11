@@ -33,9 +33,7 @@ export default function ManufactureHome() {
     const term = q.trim().toLowerCase();
     if (!term) return rows;
     return rows.filter((r) =>
-      [r.remarks, r.poNumber].some((f) =>
-        (f ?? "").toLowerCase().includes(term)
-      )
+      [r.remarks, r.poNo].some((f) => (f ?? "").toLowerCase().includes(term))
     );
   }, [rows, q]);
 
@@ -101,7 +99,7 @@ export default function ManufactureHome() {
                     }}
                     className="cursor-pointer"
                   >
-                    <TableCell className="font-medium">{r.poNumber}</TableCell>
+                    <TableCell className="font-medium">{r.poNo}</TableCell>
                     <TableCell>{r.planedUnits}</TableCell>
                     <TableCell>{toDateStr(r.startDate)}</TableCell>
                     <TableCell>{toDateStr(r.endDate)}</TableCell>

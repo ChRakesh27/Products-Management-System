@@ -1,17 +1,17 @@
 import { Timestamp } from "firebase/firestore";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { poGivenAPI } from "../../Api/firebasePOsGiven";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
-import { productsAPI } from "../../Api/firebaseProducts";
+import { rawMaterialsAPI } from "../../Api/firebaseRawMaterial";
 import { vendorsAPI } from "../../Api/firebaseVendor";
 import currency from "../../Constants/Currency";
 import generateUUID from "../../Constants/generateUniqueId";
 import { sanitizeNumberInput } from "../../Constants/sanitizeNumberInput";
 import unitTypes from "../../Constants/unitTypes";
 import { useLoading } from "../../context/LoadingContext";
-import type { POReceivedModel } from "../../Model/POEntry";
-import type { ProductModel } from "../../Model/ProductModel";
+import type { POGivenModel, POReceivedModel } from "../../Model/POEntry";
 import type { PartnerModel } from "../../Model/VendorModel";
 import { DatePicker } from "../ui/DatePicker";
 import { Input } from "../ui/input";
@@ -29,31 +29,31 @@ import ToastMSG from "../ui/Toaster";
 
 const emptyProduct = (data: any = {}) => ({
   id: data.id || generateUUID(),
+  materialId: data.materialId || "",
   name: data.name || "",
   description: data.description || "",
   size: data.size || "",
   color: data.color || "",
   unitType: data.unitType || "",
-  quantityOrdered: data.quantityOrdered || 0,
-  productionQty: data.productionQty || 0,
-  unitPrice: data.unitPrice || 0,
+  quantity: data.quantity || 0,
+  estimatePrice: data.estimatePrice || 0,
+  actualPrice: data.actualPrice || 0,
+  total: data.total || 0,
   gst: data.gst || 0,
-  totalAmount: data.total || 0,
-  rawMaterials: data.rawMaterials || [],
 });
 
 // ---- Component ------------------------------------------------------------
 
-function SetPo() {
+function SetPoGiven() {
   const { id } = useParams();
   const { setLoading } = useLoading();
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState<ProductModel[]>([]);
-  const [parties, setParties] = useState<PartnerModel[]>([]);
-  const [newPOForm, setNewPOForm] = useState<POReceivedModel>({
+  const [newPOForm, setNewPOForm] = useState<POGivenModel>({
     supplier: null,
     poNo: "",
+    poReceivedNumber: "",
+    poReceivedId: "",
     poDate: Timestamp.now(),
     deliveryDate: Timestamp.now(),
     paymentStatus: "Pending",
@@ -63,11 +63,12 @@ function SetPo() {
     totalAmount: 0,
     notes: "",
     termConditions: "",
-    preparedBy: "",
-    verifiedBy: "",
-    approvedBy: "",
-    acceptedBy: "",
   });
+  const [poReceived, setPoReceived] = useState<POReceivedModel[]>([]);
+  const [rawMaterials, setRawMaterials] = useState([]);
+  const [parties, setParties] = useState<PartnerModel[]>([]);
+
+  // ---- Actions ------------------------------------------------------------
 
   const addPOItem = useCallback(() => {
     setNewPOForm((prev) => ({
@@ -90,20 +91,21 @@ function SetPo() {
         let totalAmount = 0;
         const products = prev.products.map((p, i) => {
           if (i !== productIndex) {
-            totalAmount += p.totalAmount;
+            totalAmount += p.total;
             return p;
           }
-          const price = (field === "unitPrice" ? +value : +p.unitPrice) || 0;
+          const price =
+            (field === "actualPrice" ? +value : +p.actualPrice) || 0;
           const gst = (field === "gst" ? +value : +p.gst) || 0;
           const taxAmount = (price * gst) / 100;
           const total =
             (price + taxAmount) *
-            ((field === "quantityOrdered" ? +value : +p.quantityOrdered) || 0);
-          totalAmount += +total;
+            ((field === "quantity" ? +value : +p.quantity) || 0);
+          totalAmount += total;
           return {
             ...p,
             [field]: value,
-            totalAmount: total,
+            total,
           };
         });
         return { ...prev, products, totalAmount };
@@ -115,9 +117,9 @@ function SetPo() {
   const addNewPO = useCallback(async () => {
     try {
       setLoading(true);
-      const ref = await poReceivedAPI.create(newPOForm);
+      const ref = await poGivenAPI.create(newPOForm);
       ToastMSG("success", "Successfully created the PO");
-      navigate("/po-received/" + ref.id);
+      navigate("/po-given/" + ref.id);
     } catch (error) {
       console.error("addNewPO error:", error);
       ToastMSG("error", "Something went wrong");
@@ -131,7 +133,7 @@ function SetPo() {
       if (!id) return;
       setLoading(true);
       try {
-        let data = (await poReceivedAPI.get(id)) as POReceivedModel;
+        let data = (await poGivenAPI.get(id)) as POGivenModel;
         if (data) {
           setNewPOForm(data);
         }
@@ -142,38 +144,72 @@ function SetPo() {
         setLoading(false);
       }
     };
-    productsAPI.list(true).then(setProducts);
-    vendorsAPI.list("Customer").then(setParties);
+    const fetchPOReceivedData = async () => {
+      setLoading(true);
+      try {
+        const data = await poReceivedAPI.getAll();
+        setPoReceived(data);
+      } catch (error) {
+        console.log("🚀 ~ fetchPOData ~ error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    vendorsAPI.list("Vendor").then(setParties);
     fetchPOData();
-  }, [id]);
+    fetchPOReceivedData();
+  }, []);
 
-  function duplicateProduct(data) {
-    setNewPOForm((prev) => ({
-      ...prev,
-      products: [...prev.products, emptyProduct(data)],
-      totalAmount: prev.totalAmount + data.total,
+  async function onSelectPOReceived(poId) {
+    const selectedPoR = poReceived.find((p) => p.id == poId);
+
+    setNewPOForm((pre) => ({
+      ...pre,
+      poReceivedId: selectedPoR.id,
+      poReceivedNumber: selectedPoR.poNo,
     }));
+    const rawMaterialsData = selectedPoR.products.flatMap(
+      (item) => item.rawMaterials
+    );
+
+    const results = await Promise.all(
+      rawMaterialsData.map(async (m) => {
+        if (!m?.materialId) {
+          return { materialId: generateUUID(), ...m };
+        }
+        const res = await rawMaterialsAPI.get(m.materialId);
+        return {
+          materialId: res.id,
+          name: res.name,
+          description: res.description,
+          size: res.size,
+          color: res.color,
+          unitType: res.unitType,
+          quantity: m.quantity,
+          quantityNeed: m.quantity,
+          gst: res.gst || 0,
+          estimatePrice: res.estimatedPrice,
+          actualPrice: res.estimatedPrice,
+          total: res.estimatedPrice * m.quantity,
+        };
+      })
+    );
+    setRawMaterials(results);
   }
 
-  function selectProductFn(index, pId) {
-    const selectedProduct = products.find((p) => p.id == pId);
-    const base = selectedProduct.totalRawAmount || 0;
-    const marginAmt = (selectedProduct.margin / 100) * base || 0;
-    const wastageAmt = (selectedProduct.wastage / 100) * base || 0;
-    const unitPrice =
-      (base || 0) +
-      (marginAmt || 0) +
-      (wastageAmt || 0) +
-      (+selectedProduct.transport || 0) +
-      (+selectedProduct.miscellaneous || 0);
+  function onSelectMaterial(index: number, mId: string) {
+    const selectedMaterial = rawMaterials.find((m) => m.materialId == mId);
     setNewPOForm((prev) => {
+      let totalAmount = 0;
       const products = prev.products.map((p, i) => {
-        if (index == i) {
-          return emptyProduct({ ...selectedProduct, unitPrice });
+        if (i !== index) {
+          totalAmount += p.total;
+          return p;
         }
-        return p;
+        totalAmount += selectedMaterial.total;
+        return { id: p.id, ...selectedMaterial };
       });
-      return { ...prev, products };
+      return { ...prev, products, totalAmount };
     });
   }
 
@@ -188,16 +224,8 @@ function SetPo() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label className="block text-sm font-medium text-gray-700 mb-2">
-              Buyer Name *
+              Suppler Name *
             </Label>
-            {/* <Input
-              type="text"
-              value={newPOForm.supplier.id}
-              onChange={(e) =>
-                setNewPOForm((prev) => ({ ...prev, supplier: e.target.value }))
-              }
-              placeholder="Enter buyer name"
-            /> */}
             <PartiesSelection
               parties={parties}
               value={newPOForm.supplier?.id || ""}
@@ -221,6 +249,27 @@ function SetPo() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder="PO Number"
             />
+          </div>
+
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">
+              PO Received Number
+            </Label>
+            <Select
+              value={newPOForm.poReceivedId}
+              onValueChange={(val) => onSelectPOReceived(val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select PO Received" />
+              </SelectTrigger>
+              <SelectContent>
+                {poReceived.map((poR) => (
+                  <SelectItem key={poR.id} value={poR.id}>
+                    {poR.poNo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -263,7 +312,7 @@ function SetPo() {
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Style
+              Add Material
             </button>
           </div>
 
@@ -275,21 +324,21 @@ function SetPo() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-lg font-semibold text-gray-700">
-                    Style #{index + 1}
+                    Material #{index + 1}
                   </span>
                   <div className="">
-                    <button
+                    {/* <button
                       onClick={() => duplicateProduct(item)}
                       className="text-blue-600 hover:text-blue-700 p-1 hover:bg-blue-50 rounded transition-colors"
                       title="Remove style"
                     >
                       <Copy className="w-5 h-5" />
-                    </button>
+                    </button> */}
                     {newPOForm.products.length > 1 && (
                       <button
                         onClick={() => removePOItem(index)}
                         className="text-red-600 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
-                        title="Remove style"
+                        title="Remove Material"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -299,18 +348,26 @@ function SetPo() {
 
                 <div className="space-y-4">
                   <div>
-                    <Label>Style Name *</Label>
+                    <Label>Material Name *</Label>
+                    {/* <Input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) =>
+                        updatePOItem(index, "name", e.target.value)
+                      }
+                      placeholder="Enter Material name"
+                    /> */}
                     <Select
-                      value={item.id}
-                      onValueChange={(val) => selectProductFn(index, val)}
+                      value={item.materialId}
+                      onValueChange={(val) => onSelectMaterial(index, val)}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Unit" />
+                        <SelectValue placeholder="Select PO Received" />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name} {"->"} {p.size} {p.color}
+                        {rawMaterials.map((rm) => (
+                          <SelectItem key={rm.materialId} value={rm.materialId}>
+                            {rm.name} {rm.size} {rm.color}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -341,7 +398,7 @@ function SetPo() {
                         }
                         disabled
                       >
-                        <SelectTrigger className="w-full ">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select Unit" />
                         </SelectTrigger>
                         <SelectContent>
@@ -358,9 +415,9 @@ function SetPo() {
                       <Input
                         type="text"
                         value={item.size}
-                        onChange={(e) =>
-                          updatePOItem(index, "size", e.target.value)
-                        }
+                        // onChange={(e) =>
+                        //   updatePOItem(index, "size", e.target.value)
+                        // }
                         placeholder="S, M, L, XL"
                         readOnly
                         disabled
@@ -371,23 +428,35 @@ function SetPo() {
                       <Input
                         type="text"
                         value={item.color}
-                        onChange={(e) =>
-                          updatePOItem(index, "color", e.target.value)
-                        }
+                        // onChange={(e) =>
+                        //   updatePOItem(index, "color", e.target.value)
+                        // }
                         placeholder="Enter color(s)"
                         readOnly
                         disabled
                       />
                     </div>
                     <div>
-                      <Label>Unit Price *</Label>
+                      <Label>Estimated price </Label>
                       <Input
                         type="text"
-                        value={item.unitPrice}
+                        value={item.estimatePrice}
+                        placeholder="0.00"
+                        step="0.01"
+                        min={0}
+                        readOnly
+                        disabled
+                      />
+                    </div>
+                    <div>
+                      <Label>Actual Price *</Label>
+                      <Input
+                        type="text"
+                        value={item.actualPrice}
                         onChange={(e) =>
                           updatePOItem(
                             index,
-                            "unitPrice",
+                            "actualPrice",
                             sanitizeNumberInput(e.target.value)
                           )
                         }
@@ -413,15 +482,27 @@ function SetPo() {
                         min={0}
                       />
                     </div>
-                    <div>
-                      <Label>Quantity *</Label>
+                    {/* <div>
+                      <Label>Ordered Qty </Label>
                       <Input
                         type="text"
-                        value={item.quantityOrdered}
+                        value={item.quantityNeed}
+                        placeholder="0.00"
+                        step="0.01"
+                        min={0}
+                        readOnly
+                        disabled
+                      />
+                    </div> */}
+                    <div>
+                      <Label>Quantity</Label>
+                      <Input
+                        type="text"
+                        value={item.quantity}
                         onChange={(e) =>
                           updatePOItem(
                             index,
-                            "quantityOrdered",
+                            "quantity",
                             sanitizeNumberInput(e.target.value)
                           )
                         }
@@ -429,11 +510,12 @@ function SetPo() {
                         min={0}
                       />
                     </div>
+
                     <div className="flex items-end gap-2">
                       <div className="w-full">
-                        <Label>Total</Label>
+                        <Label>Total Value</Label>
                         <div className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-900">
-                          {item.totalAmount}
+                          {currency(item.total)}
                         </div>
                       </div>
                     </div>
@@ -526,7 +608,6 @@ function SetPo() {
             placeholder="Additional remarks, special instructions, or notes..."
           />
         </div>
-
         {/* Action Buttons */}
         <div className="flex justify-center pt-6 border-t border-gray-200">
           <button
@@ -541,4 +622,4 @@ function SetPo() {
   );
 }
 
-export default SetPo;
+export default SetPoGiven;

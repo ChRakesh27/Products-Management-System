@@ -5,7 +5,7 @@ import { manufacturesAPI } from "../../Api/firebaseManufacture";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import { productsAPI } from "../../Api/firebaseProducts";
 import { useLoading } from "../../context/LoadingContext";
-import type { POEntry } from "../../Model/POEntry";
+import type { POReceivedModel } from "../../Model/POEntry";
 import Machine from "./Machine";
 import MaterialUsage from "./MaterialUsage";
 import ProductionData from "./ProductionData";
@@ -15,7 +15,7 @@ function Manufacture() {
   const { id } = useParams();
   const [currentTab, setCurrentTab] = useState("production");
   const [product, setProduct] = useState({});
-  const [po, setPo] = useState<POEntry>();
+  const [po, setPo] = useState<POReceivedModel>();
 
   const { setLoading } = useLoading();
   useEffect(() => {
@@ -25,7 +25,8 @@ function Manufacture() {
         const res = await manufacturesAPI.get(id);
         const poRes = await poReceivedAPI.get(res.poId);
         setPo(poRes);
-        const product = await productsAPI.get(res.products[0]);
+        console.log("🚀 ~ fetchProduct ~ poRes:", poRes);
+        const product = await productsAPI.get(res.products[0].id);
         setProduct(product);
       } catch (error) {
         console.log("🚀 ~ fetchProduct ~ error:", error);
@@ -60,7 +61,7 @@ function Manufacture() {
             </h1>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            # PO: {po?.poNumber}
+            # PO: {po?.poNo}
           </div>
         </div>
       </header>

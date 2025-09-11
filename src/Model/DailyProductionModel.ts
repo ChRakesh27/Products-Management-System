@@ -53,7 +53,7 @@ export interface ManufactureModel {
     id?: string;
     products: string[];
     poId: string;
-    poNumber: string;
+    poNo: string;
     remarks: string;
     startDate: TimestampModel | null;
     endDate: TimestampModel | null;

@@ -12,8 +12,8 @@ import {
     updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { POEntry } from "../Model/POEntry";
-import { materialsAPI } from "./firebaseRawMaterial";
+import type { POGivenModel } from "../Model/POEntry";
+import { rawMaterialsAPI } from "./firebaseRawMaterial";
 
 
 
@@ -29,39 +29,49 @@ export const poGivenAPI = {
         return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     },
 
-    async get(id: string): Promise<POEntry | null> {
+    async get(id: string): Promise<POGivenModel | null> {
         const ref = doc(db, COLLECTION, id);
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             return null
         }
         const data = snap.data()
-        const products = await Promise.all(data.products.map(async (pId) => {
-            const res = await materialsAPI.get(pId)
-            return { id: res.id, ...res }
-        }))
         const payload = {
             id: snap.id,
             ...data,
-            products,
         }
-        return payload as POEntry;
+        return payload as POGivenModel;
     },
 
-    async create(input: Omit<POEntry, "createdAt" | "updatedAt">): Promise<any> {
-        const products = await Promise.all(input.products.map(async (item) => {
-            item.poNumber = input.poNumber;
-            const res = await materialsAPI.create(item)
-            return res.id;
-        }))
+    async create(input: Omit<POGivenModel, "createdAt" | "updatedAt">): Promise<any> {
         const payload = {
             ...input,
-            products,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any,
         };
-        const ref = await addDoc(poCol, payload);
-        return { id: ref.id }
+        const docRef = await addDoc(poCol, payload);
+        // const products = await Promise.all(input.products.map(async (item) => {
+        //     item.poNo = input.poNo;
+        //     const res = await rawMaterialsAPI.create(item)
+        //     return res.id;
+        // }))
+        for (const rm of input.products) {
+            rawMaterialsAPI.update(rm.materialId, {
+                actualPrice: rm.actualPrice
+            })
+            const RawMaterialProductPayload = {
+                type: "PoGiven",
+                refId: docRef.id,
+                poNo: input.poNo,
+                quantity: rm.quantity,
+                estimatedPrice: rm.estimatePrice,
+                actualPrice: rm.actualPrice,
+                total: rm.total
+            }
+            await addDoc(collection(db, "poRawMaterials", rm.materialId, "logs"), RawMaterialProductPayload);
+
+        }
+        return { id: docRef.id, ...payload }
     },
 
     async remove(id: string): Promise<void> {
@@ -69,21 +79,29 @@ export const poGivenAPI = {
         await deleteDoc(ref);
     },
 
-    async update(id: string, patch: Partial<POEntry>): Promise<void> {
-        const products = await Promise.all(patch.products.map(async (item) => {
-            if (item.id) {
-                await materialsAPI.update(item.id, item)
-                return item.id
-            } else {
-                item.poNumber = patch.poNumber;
-                const res = await materialsAPI.create(item)
-                return res.id;
-            }
-        }))
+    async update(id: string, patch: Partial<POGivenModel>): Promise<void> {
+        // const products = await Promise.all(patch.products.map(async (item) => {
+        //     if (item.id) {
+        //         await rawMaterialsAPI.update(item.id, item)
+        //         return item.id
+        //     } else {
+        //         item.poNo = patch.poNo;
+        //         const res = await rawMaterialsAPI.create(item)
+        //         return res.id;
+        //     }
+        // }))
         const ref = doc(db, COLLECTION, id)
         await updateDoc(ref, {
             ...patch,
-            products,
+            // products,
+            updatedAt: serverTimestamp() as any,
+        } as any);
+    },
+
+    async updateStatus(id: string, patch: Partial<POGivenModel>): Promise<void> {
+        const ref = doc(db, COLLECTION, id)
+        await updateDoc(ref, {
+            ...patch,
             updatedAt: serverTimestamp() as any,
         } as any);
     },

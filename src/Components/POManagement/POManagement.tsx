@@ -3,9 +3,9 @@ import {
   CheckCircle,
   Circle,
   Clock,
-  DollarSign,
   FileText,
   Filter,
+  IndianRupee,
   Palette,
   Plus,
   Scissors,
@@ -18,16 +18,23 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { poGivenAPI } from "../../Api/firebasePOsGiven";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+import currency from "../../Constants/Currency";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
-import type { POEntry } from "../../Model/POEntry";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 const POManagement = ({ field }) => {
   const { setLoading } = useLoading();
-
-  const [purchaseOrders, setPurchaseOrders] = useState<
-    (POEntry & { id: string })[]
-  >([]);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentView, setCurrentView] = useState("list");
@@ -36,8 +43,11 @@ const POManagement = ({ field }) => {
   // Filter purchase orders
   const filteredPOs = purchaseOrders.filter((po) => {
     const matchesSearch =
-      po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      po.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+      po.poNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier.gstNUmber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" || po.paymentStatus === filterStatus;
@@ -74,6 +84,21 @@ const POManagement = ({ field }) => {
         return "text-gray-700 bg-gray-100 border-gray-200";
     }
   };
+  function statusBadgeClass(status: string) {
+    const s = (status || "").toLowerCase();
+    if (s.includes("paid") || s.includes("completed") || s.includes("approved"))
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (s.includes("pending") || s.includes("processing"))
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    if (s.includes("overdue") || s.includes("failed") || s.includes("rejected"))
+      return "bg-rose-50 text-rose-700 border-rose-200";
+    return "bg-slate-50 text-slate-700 border-slate-200";
+  }
+  const pretty = (s: string) =>
+    (s ?? "")
+      .toString()
+      .replace(/-/g, " ")
+      .replace(/^\w/, (c) => c.toUpperCase());
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -117,7 +142,7 @@ const POManagement = ({ field }) => {
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h4 className="font-semibold text-gray-900 text-lg">{po.poNumber}</h4>
+          <h4 className="font-semibold text-gray-900 text-lg">{po.poNo}</h4>
           <p className="text-sm text-gray-600 mt-1">{po.buyerName}</p>
         </div>
       </div>
@@ -135,7 +160,7 @@ const POManagement = ({ field }) => {
           {getStatusIcon(po.paymentStatus)}
         </div>
         <div className="text-lg font-semibold text-gray-900">
-          ${po.totalAmount.toFixed(2)}
+          ₹ {po.totalAmount.toFixed(2)}
         </div>
       </div>
 
@@ -225,13 +250,13 @@ const POManagement = ({ field }) => {
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <DollarSign className="w-5 h-5 text-green-600" />
+                <IndianRupee className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-medium text-green-700">
                   Total Value
                 </span>
               </div>
               <span className="text-2xl font-bold text-green-600">
-                ${totalValue.toFixed(2)}
+                ₹ {totalValue.toFixed(2)}
               </span>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -364,112 +389,116 @@ const POManagement = ({ field }) => {
 
         {/* List View */}
         {currentView === "list" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="grid grid-cols-11 gap-4 text-sm font-semibold text-gray-700">
-                <div className="col-span-3">Purchase Order</div>
-                <div className="col-span-2">Buyer</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-2">Styles</div>
-                <div className="col-span-2">Total Amount</div>
-                {/* <div className="col-span-1">Actions</div> */}
-              </div>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {filteredPOs.map((po) => (
-                <div
-                  key={po.id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer "
-                  onClick={() => {
-                    navigate(po.id);
-                  }}
-                >
-                  <div className="grid grid-cols-11 gap-4 items-center">
-                    <div className="col-span-3">
+          <div className="border rounded-md overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30 sticky top-0 z-10 hover:bg-muted/30">
+                  <TableHead className="w-[16%] text-gray-700">
+                    Purchase Order
+                  </TableHead>
+                  <TableHead className="w-[20%] text-gray-700">Buyer</TableHead>
+                  <TableHead className="w-[16%] text-gray-700">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-[16%] text-gray-700">
+                    Styles
+                  </TableHead>
+                  <TableHead className="w-[18%] text-right text-gray-700">
+                    Total Amount
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {filteredPOs.map((po) => (
+                  <TableRow
+                    key={po.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => navigate(po.id)}
+                  >
+                    {/* Purchase Order */}
+                    <TableCell className="align-top">
                       <div className="flex items-center gap-3">
-                        {getStatusIcon(po.paymentStatus)}
+                        {getStatusIcon?.(po.paymentStatus)}
                         <div>
-                          <h4 className="font-semibold text-gray-900">
-                            {po.poNumber}
-                          </h4>
-                          <p className="text-sm text-gray-500">
+                          <div className="font-semibold text-gray-900">
+                            {po.poNo}
+                          </div>
+                          <div className="text-sm text-gray-500">
                             {DateFormate(po.poDate)}
-                          </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {po.supplier}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <span
-                        className={`px-3 py-1 rounded-lg text-xs font-medium border ${getStatusColor(
+                    </TableCell>
+
+                    {/* Buyer */}
+                    <TableCell className="align-top">
+                      <div className="text-sm text-gray-900">
+                        <p className="font-medium">{po?.supplier?.name}</p>
+                        <p className="text-gray-600">{po?.supplier?.phone}</p>
+                      </div>
+                    </TableCell>
+
+                    {/* Status */}
+                    <TableCell className="align-top">
+                      <Badge
+                        variant="outline"
+                        className={`px-3 py-1 rounded-lg text-xs font-medium border ${statusBadgeClass(
                           po.paymentStatus
                         )}`}
                       >
-                        {po.paymentStatus.charAt(0).toUpperCase() +
-                          po.paymentStatus.slice(1).replace("-", " ")}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
+                        {pretty(po.paymentStatus)}
+                      </Badge>
+                    </TableCell>
+
+                    {/* Styles */}
+                    <TableCell className="align-top">
                       <div className="text-sm">
                         <div className="font-medium text-gray-900">
                           {po.products.length} style
                           {po.products.length !== 1 ? "s" : ""}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          {po.products[0]?.name}
+                          {po.products?.[0]?.name}
                           {po.products.length > 1 &&
                             ` +${po.products.length - 1} more`}
                         </div>
                       </div>
-                    </div>
-                    <div className="col-span-2">
+                    </TableCell>
+
+                    {/* Total */}
+                    <TableCell className="align-top text-right">
                       <span className="text-lg font-semibold text-gray-900">
-                        ${po.totalAmount.toFixed(2)}
+                        {currency(Number(po.totalAmount ?? 0))}
                       </span>
-                    </div>
-                    {/* <div className="col-span-1">
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deletePO(po.id);
-                          }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete PO"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {filteredPOs.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <div className="px-6 py-16 text-center">
+                        <Scissors className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No purchase orders found
+                        </h3>
+                        <p className="text-gray-500 mb-4">
+                          {searchTerm
+                            ? `No results for "${searchTerm}". Try adjusting your search.`
+                            : "Get started by creating your first purchase order."}
+                        </p>
+                        {!searchTerm && (
+                          <Button onClick={() => navigate("create")}>
+                            New PO Entry
+                          </Button>
+                        )}
                       </div>
-                    </div> */}
-                  </div>
-                </div>
-              ))}
-              {filteredPOs.length === 0 && (
-                <div className="px-6 py-16 text-center">
-                  <Scissors className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No purchase orders found
-                  </h3>
-                  <p className="text-gray-500 mb-4">
-                    {searchTerm
-                      ? `No results for "${searchTerm}". Try adjusting your search.`
-                      : "Get started by creating your first purchase order."}
-                  </p>
-                  {!searchTerm && (
-                    <button
-                      onClick={() => navigate("create")}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      New PO Entry
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

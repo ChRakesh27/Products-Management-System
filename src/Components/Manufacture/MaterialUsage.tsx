@@ -258,7 +258,7 @@ function MaterialUsage({ productData, products }) {
             </TableHeader>
             <TableBody>
               {products.map((p) =>
-                p.variants?.[0]?.rawMaterials.map((rm, i) => (
+                p?.rawMaterials.map((rm, i) => (
                   <TableRow key={rm.id}>
                     <TableCell>{i + 1}</TableCell>
                     <TableCell>{p.name || "-"}</TableCell>
@@ -266,7 +266,6 @@ function MaterialUsage({ productData, products }) {
                     <TableCell>{rm.size || "-"}</TableCell>
                     <TableCell>{rm.color || "-"}</TableCell>
                     <TableCell>
-                      {" "}
                       <Input
                         type="number"
                         // value={material.unit}

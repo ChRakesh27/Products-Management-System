@@ -31,12 +31,32 @@ const tsForISODate = (yyyyMmDd: string) => {
 
 // find doc for a given ISO date
 export async function getDailyDocByDate(dateTS) {
-    // const dateTS = tsForISODate(yyyyMmDd);
     const q = query(col, where("date", "==", dateTS), limit(1));
     const snap = await getDocs(q);
     if (snap.empty) return null;
     const d = snap.docs[0];
     return { id: d.id, ...(d.data() as DailyProductionModel) };
+}
+export async function getDailyDocByCurrentMonth() {
+    const now = new Date();
+    // first day of current month
+    const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    // last day of current month
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const startTS = Timestamp.fromDate(start);
+    const endTS = Timestamp.fromDate(end);
+
+    const q = query(
+        col,
+        where("date", ">=", startTS),
+        where("date", "<=", endTS)
+    );
+
+    const snap = await getDocs(q);
+    if (snap.empty) return [];
+
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as DailyProductionModel) }));
 }
 
 // create a new daily doc (when none exists)

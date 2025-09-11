@@ -1,34 +1,48 @@
 import type { TimestampModel } from "./Date";
 
-export interface ProductRawMaterialModel {
-    id: string;
+export interface ProductModel {
+    id?: string;
+    uid: string;
     name: string;
     description: string;
-    poNumber?: string;
     size: string;
     color: string;
     unitType: string;
-    quantity: number; // default 0
-    unitPrice: number;
-    total: number;
+    totalRawAmount: number;
+    gst: number;
+    rawMaterials: ProductMaterialModel[];
+    createdAt: TimestampModel;
+    updatedAt: TimestampModel;
+    status: string;
+    margin: number;
+    transport: number;
+    wastage: number;
+    miscellaneous: number;
 }
 
 
-export interface ProductModel {
+export interface ProductMaterialModel {
+    id: string;
+    materialId: string;
+    estimatedPrice: number;
+    quantity: number;
+    gst: number;
+    totalAmount: number;
+    name?: string;
+    description?: string;
+    size?: string;
+    color?: string;
+    unitType?: string;
+}
+
+
+export interface ProductPoReceivedModel {
     id?: string;
-    name: string;
-    description: string;
-    poNumber?: string;
-    size: string;
-    color: string;
-    unitType: string;
-    quantityOrdered: number;
-    productionQty: number;
+    type: "PoReceived",
+    refId: string;
+    poNo: string;
+    quantity: number;
+    gst: number;
     unitPrice: number;
     total: number;
-    deliveryDate?: TimestampModel;
-    totalRaw: number;
-    rawMaterials: ProductRawMaterialModel[];
-    createdAt?: TimestampModel;
-    updatedAt?: TimestampModel;
 }

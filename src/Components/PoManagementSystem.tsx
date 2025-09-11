@@ -21,7 +21,7 @@ const PurchaseOrderManagement = () => {
   const [purchaseOrders, setPurchaseOrders] = useState([
     {
       id: 1,
-      poNumber: "PO-2024-001",
+      poNo: "PO-2024-001",
       supplier: "TechCorp",
       orderDate: "2024-07-25",
       expectedDelivery: "2024-08-05",
@@ -40,7 +40,7 @@ const PurchaseOrderManagement = () => {
     },
     {
       id: 2,
-      poNumber: "PO-2024-002",
+      poNo: "PO-2024-002",
       supplier: "OfficeMax",
       orderDate: "2024-07-20",
       expectedDelivery: "2024-07-30",
@@ -59,7 +59,7 @@ const PurchaseOrderManagement = () => {
     },
     {
       id: 3,
-      poNumber: "PO-2024-003",
+      poNo: "PO-2024-003",
       supplier: "EcoProducts",
       orderDate: "2024-07-15",
       expectedDelivery: "2024-07-25",
@@ -78,7 +78,7 @@ const PurchaseOrderManagement = () => {
     },
     {
       id: 4,
-      poNumber: "PO-2024-004",
+      poNo: "PO-2024-004",
       supplier: "GameTech",
       orderDate: "2024-07-10",
       expectedDelivery: "2024-07-20",
@@ -97,7 +97,7 @@ const PurchaseOrderManagement = () => {
     },
     {
       id: 5,
-      poNumber: "PO-2024-005",
+      poNo: "PO-2024-005",
       supplier: "TechCorp",
       orderDate: "2024-07-12",
       expectedDelivery: "2024-07-22",
@@ -129,7 +129,7 @@ const PurchaseOrderManagement = () => {
   // Filter purchase orders
   const filteredPOs = purchaseOrders.filter((po) => {
     const matchesSearch =
-      po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.poNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       po.supplier.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || po.status === filterStatus;
     return matchesSearch && matchesStatus;
@@ -162,10 +162,7 @@ const PurchaseOrderManagement = () => {
 
       const newPO = {
         id: Date.now(),
-        poNumber: `PO-2024-${String(purchaseOrders.length + 1).padStart(
-          3,
-          "0"
-        )}`,
+        poNo: `PO-2024-${String(purchaseOrders.length + 1).padStart(3, "0")}`,
         orderDate: new Date().toISOString().split("T")[0],
         status: "pending",
         totalAmount: totalAmount,
@@ -292,9 +289,7 @@ const PurchaseOrderManagement = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   PO Number
                 </label>
-                <p className="text-sm text-gray-900">
-                  {showPODetails.poNumber}
-                </p>
+                <p className="text-sm text-gray-900">{showPODetails.poNo}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -578,7 +573,7 @@ const PurchaseOrderManagement = () => {
   const POCard = ({ po }) => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-gray-900">{po.poNumber}</h4>
+        <h4 className="font-medium text-gray-900">{po.poNo}</h4>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowPODetails(po)}
@@ -799,7 +794,7 @@ const PurchaseOrderManagement = () => {
                         {getStatusIcon(po.status)}
                         <div>
                           <h4 className="font-medium text-gray-900">
-                            {po.poNumber}
+                            {po.poNo}
                           </h4>
                         </div>
                       </div>
