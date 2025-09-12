@@ -1,9 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import {
-  getDailyDocByCurrentMonth,
-  upsertDailyProductionForDate,
-} from "../../Api/firebaseDailyProduction";
+import { getDailyDocByCurrentMonth } from "../../Api/firebaseDailyProduction";
 import type { productionModel } from "../../Model/DailyProductionModel";
 import { useLoading } from "../../context/LoadingContext";
 import { Button } from "../ui/button";
@@ -128,12 +125,12 @@ export default function ProductionData({ poData }: { poData?: any }) {
       for (const existing of res) {
         const date = (existing.date as Timestamp).toDate();
         const key = date.toISOString().slice(0, 10);
-        setDayMap((m) => ({
-          ...m,
-          [key]:
-            (existing?.production as productionModel) ||
-            structuredClone(blankDay),
-        }));
+        // setDayMap((m) => ({
+        //   ...m,
+        //   [key]:
+        //     (existing?.production as productionModel) ||
+        //     structuredClone(blankDay),
+        // }));
       }
     } catch (e) {
       console.error("fetch day failed", e);
@@ -160,7 +157,7 @@ export default function ProductionData({ poData }: { poData?: any }) {
       setSaving(true);
       const ts = Timestamp.fromDate(drawerDate);
       // Persist the whole day (your API expects { production: productionModel })
-      await upsertDailyProductionForDate(ts, "production", drawerData);
+      // await upsertDailyProductionForDate(ts, "production", drawerData);
 
       const key = drawerDate.toISOString().slice(0, 10);
       setDayMap((m) => ({ ...m, [key]: structuredClone(drawerData) }));

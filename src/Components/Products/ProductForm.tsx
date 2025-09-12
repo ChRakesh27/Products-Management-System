@@ -230,7 +230,7 @@ export default function ProductForm() {
         await productsAPI.update(id, form);
         ToastMSG("success", "Product updated");
       } else {
-        const fresh = await productsAPI.create(form);
+        await productsAPI.create(form);
         // logType("CREATE", "product.create", { from: "product", ref: fresh.id, message: "Created new Product", data: fresh });
         ToastMSG("success", "Product created");
       }
@@ -590,7 +590,7 @@ export default function ProductForm() {
               {/* Mobile: Accordion List */}
               <div className="md:hidden">
                 <Accordion type="single" collapsible className="w-full">
-                  {form.rawMaterials.map((row, idx) => {
+                  {form.rawMaterials.map((row) => {
                     const isNewItem = newMaterialId.includes(row.id);
                     return (
                       <AccordionItem

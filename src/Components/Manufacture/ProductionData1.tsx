@@ -10,13 +10,9 @@ import {
   Settings,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  getDailyDocByDate,
-  upsertDailyProductionForDate,
-} from "../../Api/firebaseDailyProduction";
+import { getDailyDocByDate } from "../../Api/firebaseDailyProduction";
 import type { productionModel } from "../../Model/DailyProductionModel";
 import { useLoading } from "../../context/LoadingContext";
-import { DatePicker } from "../ui/DatePicker";
 import ToastMSG from "../ui/Toaster";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -89,7 +85,7 @@ function ProductionData({ poData }) {
 
     try {
       setSaving(true);
-      await upsertDailyProductionForDate(date, "production", productionData);
+      // await upsertDailyProductionForDate(date, "production", productionData);
       ToastMSG("success", "Saved production log");
     } catch (e) {
       console.error(e);
@@ -107,9 +103,9 @@ function ProductionData({ poData }) {
       try {
         setLoading(false);
         const existing = await getDailyDocByDate(date);
-        if (existing && Object.keys(existing?.production).length)
-          setProductionData(existing.production as productionModel);
-        else setProductionData(defaultData as productionModel);
+        // if (existing && Object.keys(existing?.production).length)
+        //   setProductionData(existing.production as productionModel);
+        // else setProductionData(defaultData as productionModel);
       } catch (error) {
         console.log("🚀 ~ fetchData ~ error:", error);
       } finally {
@@ -133,12 +129,12 @@ function ProductionData({ poData }) {
           <div>
             <Label>Date *</Label>
 
-            <DatePicker
+            {/* <DatePicker
               date={date}
               setDate={(d) => {
                 setDate(d);
               }}
-            />
+            /> */}
           </div>
           <div>
             <Label>Select Product *</Label>

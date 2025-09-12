@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { poGivenAPI } from "../../Api/firebasePOsGiven";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
 
+import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -12,8 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import {
   Table,
@@ -24,17 +23,17 @@ import {
   TableRow,
 } from "../ui/table";
 
-import ToastMSG from "../ui/Toaster";
 import {
-  FileText,
-  Truck,
   Building2,
-  Wallet,
-  Link as LinkIcon,
   ChevronDown,
   ChevronUp,
+  FileText,
   Globe2,
+  Link as LinkIcon,
+  Truck,
+  Wallet,
 } from "lucide-react";
+import ToastMSG from "../ui/Toaster";
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -70,7 +69,6 @@ const PoVendorView = () => {
   const [PODetails, setPODetails] = useState<any>(null);
   const [openIdx, setOpenIdx] = useState<number | null>(null); // mobile accordion
   const { setLoading } = useLoading();
-  const navigate = useNavigate();
 
   const curSymbol = PODetails?.currency?.symbol || "₹";
 

@@ -7,6 +7,8 @@ import { AppSidebar } from "./AppSidebar";
 import Navbar from "./Navbar";
 
 // 🔹 Lazy imports
+const UserProfile = lazy(() => import("../Settings/UserProfile"));
+const CompanyProfile = lazy(() => import("../Settings/CompanyProfile"));
 const Manufacture = lazy(() => import("../Manufacture/Manufacture"));
 const ManufactureHome = lazy(() => import("../Manufacture/ManufactureHome"));
 const SetManufactureHome = lazy(
@@ -51,6 +53,8 @@ function Home() {
             {/* 🔹 Suspense wraps all lazy-loaded routes */}
             <Suspense fallback={<div className="p-4">Loading...</div>}>
               <Routes>
+                <Route path="/UserProfile" element={<UserProfile />} />
+                <Route path="/companyProfile" element={<CompanyProfile />} />
                 <Route path="/materials" element={<RawMaterialsList />} />
                 <Route path="/materials/new" element={<RawMaterialForm />} />
                 <Route path="/materials/:id" element={<RawMaterialView />} />

@@ -1,13 +1,8 @@
 import { Timestamp } from "firebase/firestore";
 import { Box, Info, Save } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import {
-  getDailyDocByDate,
-  upsertDailyProductionForDate,
-} from "../../Api/firebaseDailyProduction";
+import { useMemo, useState } from "react";
 import type { MaterialRow } from "../../Model/DailyProductionModel";
 import { useLoading } from "../../context/LoadingContext";
-import { DatePicker } from "../ui/DatePicker";
 import ToastMSG from "../ui/Toaster";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -74,15 +69,15 @@ function MaterialUsage({ productData, products }) {
         return;
       }
       setSaving(true);
-      const payload = materialData.map((ele) => ({
-        id: ele.id,
-        materialId: ele.materialId,
-        used: ele.used,
-        wastage: ele.wastage,
-        unit: ele.unit,
-        notes: ele.notes,
-      }));
-      await upsertDailyProductionForDate(date, "materials", payload);
+      // const payload = materialData.map((ele) => ({
+      //   id: ele.id,
+      //   materialId: ele.materialId,
+      //   used: ele.used,
+      //   wastage: ele.wastage,
+      //   unit: ele.unit,
+      //   notes: ele.notes,
+      // }));
+      // await upsertDailyProductionForDate(date, "materials", payload);
       ToastMSG("success", "Saved material log");
     } catch (e) {
       console.error(e);
@@ -92,47 +87,47 @@ function MaterialUsage({ productData, products }) {
     }
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!date) {
-        return;
-      }
-      try {
-        setLoading(true);
-        const existing = await getDailyDocByDate(date);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     if (!date) {
+  //       return;
+  //     }
+  //     try {
+  //       setLoading(true);
+  //       const existing = await getDailyDocByDate(date);
 
-        if (existing?.materials) {
-          const data = productData.rawMaterials.map((ele) => {
-            const materialData = existing.materials.find(
-              (mEle) => mEle?.id == ele.id
-            );
-            return {
-              ...ele,
-              used: materialData.used,
-              wastage: materialData.wastage,
-              unit: materialData.unit,
-              notes: materialData.notes,
-            };
-          });
-          setMaterialData(data);
-        } else {
-          const data = productData.rawMaterials.map((ele) => ({
-            ...ele,
-            used: 0,
-            wastage: 0,
-            unit: 0,
-            notes: "",
-          }));
-          setMaterialData(data);
-        }
-      } catch (error) {
-        console.log("🚀 ~ fetchData ~ error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    // fetchData();
-  }, [date]);
+  //       if (existing?.materials) {
+  //         const data = productData.rawMaterials.map((ele) => {
+  //           const materialData = existing.materials.find(
+  //             (mEle) => mEle?.id == ele.id
+  //           );
+  //           return {
+  //             ...ele,
+  //             used: materialData.used,
+  //             wastage: materialData.wastage,
+  //             unit: materialData.unit,
+  //             notes: materialData.notes,
+  //           };
+  //         });
+  //         setMaterialData(data);
+  //       } else {
+  //         const data = productData.rawMaterials.map((ele) => ({
+  //           ...ele,
+  //           used: 0,
+  //           wastage: 0,
+  //           unit: 0,
+  //           notes: "",
+  //         }));
+  //         setMaterialData(data);
+  //       }
+  //     } catch (error) {
+  //       console.log("🚀 ~ fetchData ~ error:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  //   // fetchData();
+  // }, [date]);
 
   return (
     <div className="space-y-6">
@@ -147,12 +142,12 @@ function MaterialUsage({ productData, products }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <Label>Date *</Label>
-            <DatePicker
+            {/* <DatePicker
               date={date}
               setDate={async (d) => {
                 setDate(d);
               }}
-            />
+            /> */}
           </div>
         </div>
 

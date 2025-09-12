@@ -293,9 +293,6 @@ const PoVendor = () => {
                 PO Overview
               </h2>
             </div>
-            <div className="text-xs md:text-sm text-gray-500">
-              Last updated: {new Date().toLocaleDateString()}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">

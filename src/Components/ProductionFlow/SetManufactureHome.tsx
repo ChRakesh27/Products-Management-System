@@ -7,7 +7,7 @@ import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 
 import type { ManufactureModel } from "../../Model/DailyProductionModel";
 
-import type { POEntry } from "../../Model/POEntry";
+import type { POReceivedModel } from "../../Model/POEntry";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DatePicker } from "../ui/DatePicker";
@@ -28,7 +28,7 @@ export default function SetManufactureHome() {
   const navigate = useNavigate();
 
   // PO list for dropdown
-  const [poList, setPoList] = useState<POEntry[]>([]);
+  const [poList, setPoList] = useState<POReceivedModel[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
@@ -53,7 +53,7 @@ export default function SetManufactureHome() {
   useEffect(() => {
     (async () => {
       const list = await poReceivedAPI.getAll();
-      setPoList(list as unknown as POEntry[]);
+      setPoList(list as unknown as POReceivedModel[]);
     })();
   }, []);
 

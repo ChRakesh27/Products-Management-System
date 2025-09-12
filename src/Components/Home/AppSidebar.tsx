@@ -5,12 +5,12 @@ import {
   Home,
   Inbox,
   Layers,
+  LogOut,
   PackageCheck,
-  Settings,
   ShoppingCart,
   User,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Sidebar,
@@ -25,10 +25,12 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserLogout } from "../../store/UserSlice";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import ToastMSG from "../ui/Toaster"; // NEW
 import {
   Tooltip,
   TooltipContent,
@@ -51,16 +53,42 @@ const useActivePath = () => {
   }, []);
   return path;
 };
+
 // ---- Data -----------------------------------------------------------------
 const NAV = [
   {
     label: "Operations",
     items: [
-      { title: "Style / Products", url: "/products", icon: Layers },
-      { title: "Materials", url: "/materials", icon: Boxes },
-      { title: "Work Orders", url: "/manufactures", icon: Factory },
-      { title: "Production", url: "/production", icon: ClipboardList },
-      { title: "Inventory", url: "/inventory", icon: PackageCheck },
+      {
+        title: "Style / Products",
+        url: "/products",
+        icon: Layers,
+        isComingSoon: false,
+      },
+      {
+        title: "Materials",
+        url: "/materials",
+        icon: Boxes,
+        isComingSoon: false,
+      },
+      {
+        title: "Work Orders",
+        url: "/manufactures",
+        icon: Factory,
+        isComingSoon: false,
+      },
+      {
+        title: "Production ",
+        url: "/",
+        icon: ClipboardList,
+        isComingSoon: true,
+      },
+      {
+        title: "Inventory",
+        url: "/",
+        icon: PackageCheck,
+        isComingSoon: true,
+      },
     ],
   },
   {
@@ -72,13 +100,30 @@ const NAV = [
       { title: "Dashboard", url: "/", icon: Home },
     ],
   },
+  {
+    label: "Settings",
+    items: [
+      { title: "User", url: "/userProfile", icon: User },
+      { title: "Company", url: "/companyProfile", icon: Home },
+    ],
+  },
 ];
 
 // ---- Component ------------------------------------------------------------
 export function AppSidebar() {
   const activePath = useActivePath();
-  const [collapsed, setCollapsed] = React.useState(false);
   const usersDetails = useSelector((state: any) => state?.users);
+  const dispatch = useDispatch();
+  // NEW — Logout handler
+  const handleLogout = async () => {
+    try {
+      dispatch(setUserLogout());
+      window.location.href = "/login";
+    } catch (err) {
+      console.error(err);
+      ToastMSG?.("error", "Logout failed");
+    }
+  };
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -87,21 +132,19 @@ export function AppSidebar() {
           "bg-gradient-to-b from-background/80 to-background/40 backdrop-blur supports-[backdrop-filter]:bg-background/60",
           "border-r border-border/60"
         )}
-        data-collapsed={collapsed ? "true" : "false"}
+        data-collapsed={"true"}
       >
         <SidebarHeader className="px-3 py-2">
           <div className="flex items-center gap-2">
             <div className="size-8 rounded-xl bg-primary/10 grid place-items-center">
               <span className="text-sm font-bold text-primary">S</span>
             </div>
-            {!collapsed && (
-              <div className="flex-1">
-                <div className="text-sm font-semibold leading-tight">Sunya</div>
-                <div className="text-[11px] text-muted-foreground leading-tight">
-                  Manufacturing Suite
-                </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold leading-tight">Sunya</div>
+              <div className="text-[11px] text-muted-foreground leading-tight">
+                Manufacturing Suite
               </div>
-            )}
+            </div>
           </div>
         </SidebarHeader>
 
@@ -110,11 +153,9 @@ export function AppSidebar() {
         <SidebarContent className="px-2 py-2">
           {NAV.map((group) => (
             <SidebarGroup key={group.label} className="mb-2">
-              {!collapsed && (
-                <SidebarGroupLabel className="text-[11px] tracking-wide uppercase text-muted-foreground px-2">
-                  {group.label}
-                </SidebarGroupLabel>
-              )}
+              <SidebarGroupLabel className="text-[11px] tracking-wide uppercase text-muted-foreground px-2">
+                {group.label}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => {
@@ -133,25 +174,26 @@ export function AppSidebar() {
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <Icon className="size-4 shrink-0" />
-                          {!collapsed && (
-                            <span className="truncate">{item.title}</span>
-                          )}
+                          <span className="truncate ">
+                            {item.title}{" "}
+                            {item.isComingSoon && (
+                              <i className="text-[12px] mx-1 text-gray-500 border px-3 rounded-2xl">
+                                Coming soon
+                              </i>
+                            )}{" "}
+                          </span>
                         </a>
                       </SidebarMenuButton>
                     );
 
                     return (
                       <SidebarMenuItem key={item.title}>
-                        {collapsed ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>{button}</TooltipTrigger>
-                            <TooltipContent side="right">
-                              {item.title}
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          button
-                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>{button}</TooltipTrigger>
+                          <TooltipContent side="right">
+                            {item.title}
+                          </TooltipContent>
+                        </Tooltip>
                       </SidebarMenuItem>
                     );
                   })}
@@ -167,38 +209,35 @@ export function AppSidebar() {
           <div
             className={cx(
               "flex items-center gap-2 rounded-lg px-2 py-1.5",
-              collapsed ? "justify-center" : ""
+              "justify-center"
             )}
           >
             <Avatar className="size-7">
               <AvatarFallback className="text-[10px]">
-                {usersDetails.name[0]}
+                {usersDetails?.name?.[0] ?? "U"}
               </AvatarFallback>
             </Avatar>
-            {!collapsed && (
-              <div className="min-w-0">
-                <div className="text-xs font-medium leading-tight">
-                  {usersDetails.name}
-                </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium leading-tight">
+                {usersDetails?.name ?? "User"}
               </div>
-            )}
-            {/* <div className="ml-auto flex items-center gap-1">
+            </div>
+            <div className="ml-auto flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     size="icon"
                     variant="ghost"
                     className="size-7"
-                    asChild
+                    aria-label="Logout"
+                    onClick={handleLogout}
                   >
-                    <a href="/settings" aria-label="Settings">
-                      <Settings className="size-4" />
-                    </a>
+                    <LogOut className="size-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">Settings</TooltipContent>
+                <TooltipContent side="right">Logout</TooltipContent>
               </Tooltip>
-            </div> */}
+            </div>
           </div>
         </SidebarFooter>
       </Sidebar>

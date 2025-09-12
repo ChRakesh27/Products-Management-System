@@ -1,13 +1,9 @@
 // components/Machine.tsx
 import { Info, Plus, Save, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  getDailyDocByDate,
-  upsertDailyProductionForDate,
-} from "../../Api/firebaseDailyProduction";
+import { getDailyDocByDate } from "../../Api/firebaseDailyProduction";
 import type { MachineRow } from "../../Model/DailyProductionModel";
 import { useLoading } from "../../context/LoadingContext";
-import { DatePicker } from "../ui/DatePicker";
 import ToastMSG from "../ui/Toaster";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -78,7 +74,7 @@ function Machine() {
 
     try {
       setSaving(true);
-      await upsertDailyProductionForDate(date, "machines", machineData);
+      // await upsertDailyProductionForDate(date, "machines", machineData);
       ToastMSG("success", "Saved machine log");
     } catch (e) {
       console.error(e);
@@ -95,9 +91,9 @@ function Machine() {
       try {
         setLoading(false);
         const existing = await getDailyDocByDate(date);
-        if (existing?.machines)
-          setMachineData(existing.machines as MachineRow[]);
-        else setMachineData([emptyRow()]);
+        // if (existing?.machines)
+        //   setMachineData(existing.machines as MachineRow[]);
+        // else setMachineData([emptyRow()]);
       } catch (error) {
         console.log("🚀 ~ fetchData ~ error:", error);
       } finally {
@@ -119,12 +115,12 @@ function Machine() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <Label>Date *</Label>
-            <DatePicker
+            {/* <DatePicker
               date={date}
               setDate={async (d: string) => {
                 setDate(d);
               }}
-            />
+            /> */}
           </div>
         </div>
 

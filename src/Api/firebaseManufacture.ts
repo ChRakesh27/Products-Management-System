@@ -28,13 +28,12 @@ const colRef = collection(db, "companies", usersDetails?.asCompanies[0]?.company
 export const manufacturesAPI = {
     async getAll(): Promise<ManufactureModel[]> {
         const q = query(colRef, orderBy("createdAt", "desc"));
-
         const snap = await getDocs(q);
         return snap.docs.map((d) => ({ id: d.id, ...(d.data() as ManufactureModel) }));
     },
 
     async get(id: string): Promise<ManufactureModel | null> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails?.asCompanies[0]?.companyId, COLLECTION, id);
         const snap = await getDoc(ref);
         return snap.exists() ? ({ id: snap.id, ...(snap.data() as ManufactureModel) }) : null;
     },
@@ -51,7 +50,7 @@ export const manufacturesAPI = {
     },
 
     async update(id: string, patch: Partial<ManufactureModel>) {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails?.asCompanies[0]?.companyId, COLLECTION, id);
         const safePatch: any = {
             ...patch,
             updatedAt: Timestamp.now(),
@@ -61,6 +60,6 @@ export const manufacturesAPI = {
     },
 
     async delete(id: string) {
-        await deleteDoc(doc(db, COLLECTION, id));
+        await deleteDoc(doc(db, "companies", usersDetails?.asCompanies[0]?.companyId, COLLECTION, id));
     },
 };

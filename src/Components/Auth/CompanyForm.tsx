@@ -24,6 +24,9 @@ import GSTCodeState from "../../Constants/GSTCodeState";
 import { useLoading } from "../../context/LoadingContext";
 import { db, storage } from "../../firebase";
 import { setCompanyData, updateUserDetails } from "../../store/UserSlice";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
@@ -374,39 +377,31 @@ const CompanyForm = ({ userRef }) => {
           {step === 0 && (
             <>
               <div>
-                <label
-                  htmlFor="userProfileImg"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Upload Profile Image
-                </label>
-                <input
+                <Label htmlFor="userProfileImg">Upload Profile Image</Label>
+                <Input
                   type="file"
                   id="userProfileImg"
                   name="photoURL"
                   accept="image/*"
                   onChange={handleChange}
-                  className="mt-1 w-full p-3  input-tag  file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
               </div>
               <div>
-                <label>Full Name</label>
-                <input
+                <Label>Full Name</Label>
+                <Input
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="e.g. John Doe"
-                  className="mt-1 input-tag w-full"
                 />
               </div>
               <div>
-                <label>Email</label>
-                <input
+                <Label>Email</Label>
+                <Input
                   name="userEmail"
                   value={formData.userEmail}
                   onChange={handleChange}
                   placeholder="e.g. john@example.com"
-                  className="mt-1 input-tag w-full"
                 />
               </div>
             </>
@@ -416,84 +411,74 @@ const CompanyForm = ({ userRef }) => {
             <>
               <div className="space-y-2 mt-4">
                 <div>
-                  <label
-                    htmlFor="userProfileImg"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Upload Company Logo
-                  </label>
-                  <input
+                  <Label htmlFor="userProfileImg">Upload Company Logo</Label>
+                  <Input
                     type="file"
                     id="userProfileImg"
                     name="photoURL"
                     accept="image/*"
                     onChange={handleChange}
-                    className="mt-1 w-full p-3 input-tag  file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                   />
                 </div>
                 <div>
-                  <label>Company Name</label>
-                  <input
+                  <Label>Company Name</Label>
+                  <Input
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
-                    className="input-tag w-full mt-1"
                   />
                 </div>
                 <div>
-                  <label>
+                  <Label>
                     GST Number
                     <span className="text-xs text-red-600 ps-5">
                       {formData.gstNumber &&
                         !isValidGSTIN(formData.gstNumber) &&
                         "Field validation error for GSTIN"}
                     </span>
-                  </label>
+                  </Label>
                   <div className="flex items-center space-x-3 mt-1">
-                    <input
+                    <Input
                       name="gstNumber"
                       value={formData.gstNumber}
                       onChange={handleChange}
                       className="input-tag w-full "
                     />
-                    <button onClick={fetchGSTNo} className="btn-add">
+                    <Button onClick={fetchGSTNo} className="btn-add">
                       Fetch
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label>Company Phone</label>
-                    <input
+                    <Label>Company Phone</Label>
+                    <Input
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="input-tag w-full mt-1"
                     />
                   </div>
                   <div>
-                    <label>Pan Number</label>
-                    <input
+                    <Label>Pan Number</Label>
+                    <Input
                       type="text"
                       name="panNumber"
                       value={formData.panNumber}
                       onChange={handleChange}
-                      className="input-tag w-full mt-1"
                     />
                   </div>
                   <div>
-                    <label>Address</label>
-                    <input
+                    <Label>Address</Label>
+                    <Input
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      className="input-tag w-full mt-1"
                     />
                   </div>
                   <div className=" space-y-2">
-                    <label className="text-sm space-y-1 text-gray-600">
+                    <Label className="text-sm space-y-1 text-gray-600">
                       State <span className="text-red-500">*</span>
-                    </label>
+                    </Label>
                     <div>
                       <Select
                         value={formData.stateCode}
@@ -526,21 +511,19 @@ const CompanyForm = ({ userRef }) => {
                     </div>
                   </div>
                   <div>
-                    <label>City</label>
-                    <input
+                    <Label>City</Label>
+                    <Input
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      className="input-tag w-full mt-1"
                     />
                   </div>
                   <div>
-                    <label>Pin Code</label>
-                    <input
+                    <Label>Pin Code</Label>
+                    <Input
                       name="pinCode"
                       value={formData.pinCode}
                       onChange={handleChange}
-                      className="input-tag w-full mt-1"
                     />
                   </div>
                 </div>
@@ -551,12 +534,11 @@ const CompanyForm = ({ userRef }) => {
 
           {step === 2 && (
             <div>
-              <label>Select Business Nature</label>
+              <Label>Select Business Nature</Label>
               <div className="grid grid-cols-2 gap-3 mt-3">
                 {businessOptions.map((option) => (
-                  <button
+                  <Button
                     key={option}
-                    type="button"
                     onClick={() => selectBusinessNature(option)}
                     className={`w-full py-3 px-4 border rounded-md text-sm font-medium transition-all ${
                       formData.businessNature === option
@@ -565,34 +547,34 @@ const CompanyForm = ({ userRef }) => {
                     }`}
                   >
                     {option}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
           <div className="flex justify-between pt-4">
-            <button
+            <Button
               onClick={prevStep}
               disabled={step === 0}
               className="btn-outline-blue"
             >
               Back
-            </button>
+            </Button>
             <div className="flex gap-2">
               {step < steps.length - 1 && step != 1 && (
-                <button onClick={nextStep} className="btn-outline-blue">
+                <Button onClick={nextStep} className="btn-outline-blue">
                   Skip
-                </button>
+                </Button>
               )}
               {step < steps.length - 1 ? (
-                <button onClick={nextStep} className="btn-add">
+                <Button onClick={nextStep} className="btn-add">
                   Next
-                </button>
+                </Button>
               ) : (
-                <button className="btn-add" onClick={onSubmit}>
+                <Button className="btn-add" onClick={onSubmit}>
                   Finish
-                </button>
+                </Button>
               )}
             </div>
           </div>

@@ -23,7 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import ToastMSG from "../ui/Toaster";
 
 type RM = RawMaterialModel & { id: string };
 
@@ -39,19 +38,6 @@ const availableQty = (m: RM) =>
   );
 
 const LOW_STOCK_THRESHOLD = 5;
-
-function availabilityStatus(m: RM): "in" | "low" | "out" {
-  const a = availableQty(m);
-  if (a <= 0) return "out";
-  if (a <= LOW_STOCK_THRESHOLD) return "low";
-  return "in";
-}
-function statusBadge(status: "in" | "low" | "out") {
-  if (status === "in")
-    return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (status === "low") return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-rose-50 text-rose-700 border-rose-200";
-}
 
 export default function RawMaterialList() {
   const navigate = useNavigate();
@@ -88,7 +74,6 @@ export default function RawMaterialList() {
         [m.name, m.color, m.size, m.unitType]
           .filter(Boolean)
           .some((x) => String(x).toLowerCase().includes(term));
-      const s = availabilityStatus(m);
       return matchesTerm;
     });
 
@@ -115,18 +100,6 @@ export default function RawMaterialList() {
     }
     return data;
   }, [list, searchTerm, sortBy]);
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this raw material?")) return;
-    try {
-      await rawMaterialsAPI.remove(id);
-      ToastMSG?.("success", "Deleted successfully");
-      load();
-    } catch (err) {
-      console.error(err);
-      ToastMSG?.("error", "Delete failed");
-    }
-  };
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
@@ -199,7 +172,6 @@ export default function RawMaterialList() {
 
             <TableBody>
               {filtered.map((m) => {
-                const s = availabilityStatus(m);
                 return (
                   <TableRow
                     key={m.id}
@@ -246,7 +218,6 @@ export default function RawMaterialList() {
           <div className="p-4 text-sm text-muted-foreground">Loading…</div>
         ) : filtered.length ? (
           filtered.map((m) => {
-            const s = availabilityStatus(m);
             return (
               <div
                 key={m.id}

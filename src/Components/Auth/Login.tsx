@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../../assets/loginImg.jpg";
-import SunyaLogo from "../../assets/SunyaLogo.jpg";
+import SunyaLogo from "../../assets/SunyaLogo.png";
 import updatedSingleDataCompanyDetails from "../../Constants/updatedCompanyDetails";
 import { useLoading } from "../../context/LoadingContext";
 import { auth, db } from "../../firebase";
@@ -270,15 +270,12 @@ const Login = () => {
           <CompanyForm userRef={userDocRef} />
         ) : (
           <div className=" bg-white flex  justify-center items-center h-screen w-full">
-            <div
-              className="flex flex-col justify-center bg-white px-14 rounded-2xl"
-              style={{ width: "93%", height: "80%" }}
-            >
+            <div className="flex flex-col justify-center bg-white px-14 rounded-2xl">
               <div className="relative  rounded-xl ">
-                <div className="flex flex-col xl:flex-row items-center w-full gap-y-12">
-                  <div className="basis-full xl:basis-1/2 flex justify-center ps-10 w-full ">
-                    <div className="w-full  xl:w-[480px]  relative z-20">
-                      <div className="max-w-lg w-full h-auto ">
+                <div className="flex flex-col xl:flex-row items-center w-full  gap-12">
+                  <div className="basis-full xl:basis-1/2 flex justify-center   w-full ">
+                    <div className="w-full  relative z-20">
+                      <div className="max-w-lg w-full h-auto  ">
                         <div className="py-5 w-full  rounded-lg  p-3">
                           <div className=" pt-5">
                             <img
@@ -301,7 +298,7 @@ const Login = () => {
                                     Phone
                                   </Label>
                                   <div className="flex items-center mb-4">
-                                    <span className="px-3 py-[5px] border border-r-0 rounded-l-md text-gray-700">
+                                    <span className="px-3 py-[8px] border border-r-0 rounded-l-md text-gray-700">
                                       +91
                                     </span>
                                     <Input
@@ -382,65 +379,7 @@ const Login = () => {
                     </div>
                   </div>
                   <div className="basis-full xl:basis-1/2 hidden xl:block relative w-[500px] ">
-                    <svg
-                      className="absolute top-0 -right-0 "
-                      width="1008"
-                      height="580"
-                      viewBox="0 0 1208 1080"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g filter="url(#filter0_f_4801_13605)">
-                        <circle
-                          cx="604"
-                          cy="565"
-                          r="404"
-                          fill="url(#paint0_radial_4801_13605)"
-                        />
-                      </g>
-                      <defs>
-                        <filter
-                          id="filter0_f_4801_13605"
-                          x="0"
-                          y="-39"
-                          width="1208"
-                          height="1208"
-                          filterUnits="userSpaceOnUse"
-                          colorInterpolationFilters="sRGB"
-                        >
-                          <feFlood
-                            floodOpacity="0"
-                            result="BackgroundImageFix"
-                          />
-                          <feBlend
-                            mode="normal"
-                            in="SourceGraphic"
-                            in2="BackgroundImageFix"
-                            result="shape"
-                          />
-                          <feGaussianBlur
-                            stdDeviation="100"
-                            result="effect1_foregroundBlur_4801_13605"
-                          />
-                        </filter>
-                        <radialGradient
-                          id="paint0_radial_4801_13605"
-                          cx="0"
-                          cy="0"
-                          r="1"
-                          gradientUnits="userSpaceOnUse"
-                          gradientTransform="translate(805.322 373.168) rotate(134.675) scale(1098.13)"
-                        >
-                          <stop stopColor="#826AF9" stopOpacity="0.6" />
-                          <stop
-                            offset="1"
-                            stopColor="#826AF9"
-                            stopOpacity="0"
-                          />
-                        </radialGradient>
-                      </defs>
-                    </svg>
-                    <div className="bg-[hsl(250,92%,70%)] h-full w-full rounded-3xl rounded-tr-none   relative  overflow-hidden min-h-[500px]">
+                    <div className=" h-full w-full rounded-3xl rounded-tr-none   relative  overflow-hidden ">
                       <svg
                         className="absolute -top-[25px] -right-6 hidden lg:block [&>*]:fill-background"
                         width="209"

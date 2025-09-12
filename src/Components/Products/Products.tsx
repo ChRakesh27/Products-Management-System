@@ -72,7 +72,6 @@ export default function ProductList() {
 
   // UI state
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     (async () => {
@@ -108,12 +107,10 @@ export default function ProductList() {
         [p.name, p.color, p.size, p.unitType]
           .filter(Boolean)
           .some((x) => String(x).toLowerCase().includes(term));
-      const matchesStatus =
-        statusFilter === "all" ||
-        (p.status || "").toLowerCase() === statusFilter;
-      return matchesTerm && matchesStatus;
+
+      return matchesTerm;
     });
-  }, [list, searchTerm, statusFilter]);
+  }, [list, searchTerm]);
 
   return (
     <div className="p-6 space-y-6">

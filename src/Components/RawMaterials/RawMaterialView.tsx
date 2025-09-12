@@ -1,6 +1,6 @@
 // components/materials/RawMaterialView.tsx
 import { ArrowLeft, FileText, Palette, Ruler, Tag } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { rawMaterialsAPI } from "../../Api/firebaseRawMaterial";
 import currency from "../../Constants/Currency";
@@ -18,37 +18,6 @@ import { Card, CardTitle } from "../ui/card";
 /* ----------------------------- helpers & UI bits ----------------------------- */
 const safeCurrency = (n?: number) =>
   currency(Number.isFinite(n as number) ? (n as number) : 0);
-
-function Stat({
-  label,
-  value,
-  icon,
-  accent = "slate",
-}: {
-  label: string;
-  value: React.ReactNode;
-  icon?: React.ReactNode;
-  accent?: "emerald" | "sky" | "violet" | "amber" | "rose" | "slate" | "indigo";
-}) {
-  const map = {
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    sky: "border-sky-200 bg-sky-50 text-sky-800",
-    violet: "border-violet-200 bg-violet-50 text-violet-800",
-    amber: "border-amber-200 bg-amber-50 text-amber-800",
-    rose: "border-rose-200 bg-rose-50 text-rose-800",
-    indigo: "border-indigo-200 bg-indigo-50 text-indigo-800",
-    slate: "border-slate-200 bg-slate-50 text-slate-800",
-  } as const;
-  return (
-    <div className={cn("rounded-lg border p-3", map[accent])}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-xs font-medium opacity-90">{label}</div>
-        {icon ? <span className="opacity-80">{icon}</span> : null}
-      </div>
-      <div className="mt-1 text-base font-semibold">{value}</div>
-    </div>
-  );
-}
 
 function KeyValue({
   label,
@@ -120,28 +89,6 @@ export default function RawMaterialView() {
       }
     })();
   }, [id]);
-
-  const totals = useMemo(() => {
-    const qty = material?.quantity ?? 0;
-    const used = material?.quantityUsed ?? 0;
-    const waste = material?.quantityWastage ?? 0;
-    const avail = Math.max(qty - used - waste, 0);
-    const estUnit = material?.estimatedPrice ?? 0;
-    const actUnit = material?.actualPrice ?? 0;
-
-    return {
-      qty,
-      used,
-      waste,
-      avail,
-      estUnit,
-      actUnit,
-      estValue: estUnit * avail,
-      actValue: actUnit * avail,
-      wastePct: qty > 0 ? (waste / qty) * 100 : 0,
-      usedPct: qty > 0 ? (used / qty) * 100 : 0,
-    };
-  }, [material]);
 
   if (loading || !material) {
     return (

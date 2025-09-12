@@ -7,7 +7,7 @@ import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 
 import type { ManufactureModel } from "../../Model/DailyProductionModel";
 
-import type { POEntry } from "../../Model/POEntry";
+import type { POReceivedModel } from "../../Model/POEntry";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DatePicker } from "../ui/DatePicker";
@@ -28,7 +28,7 @@ export default function SetManufactureHome() {
   const navigate = useNavigate();
 
   // PO list for dropdown
-  const [poList, setPoList] = useState<POEntry[]>([]);
+  const [poList, setPoList] = useState<POReceivedModel[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
@@ -53,7 +53,7 @@ export default function SetManufactureHome() {
   useEffect(() => {
     (async () => {
       const list = await poReceivedAPI.getAll();
-      setPoList(list as unknown as POEntry[]);
+      setPoList(list as unknown as POReceivedModel[]);
     })();
   }, []);
 
@@ -115,7 +115,7 @@ export default function SetManufactureHome() {
 
   if (loading) {
     return (
-      <Card className="max-w-3xl mx-auto">
+      <Card className="max-w-3xl mx-auto py-5">
         <CardHeader>
           <CardTitle>Loading…</CardTitle>
         </CardHeader>
@@ -124,8 +124,8 @@ export default function SetManufactureHome() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto grid gap-6">
-      <Card>
+    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto grid gap-6 py-6">
+      <Card className="py-6">
         <CardHeader>
           <CardTitle>
             {isEdit ? "Edit Manufacture" : "Create Manufacture"}

@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { format } from "date-fns";
 import { Timestamp } from "firebase/firestore";
+import type { TimestampModel } from "../../Model/Date";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
@@ -14,8 +15,8 @@ export function DatePicker({
   setDate,
   className = "",
 }: {
-  date?: Timestamp;
-  setDate: (d: Timestamp) => void;
+  date?: TimestampModel;
+  setDate: (d: TimestampModel) => void;
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);

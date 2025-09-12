@@ -18,6 +18,7 @@ function Manufacture() {
       try {
         setLoading(true);
         const res = await manufacturesAPI.get(id);
+        console.log("🚀 ~ fetchProduct ~ res:", res);
         const poRes = await poReceivedAPI.get(res.poId);
         setPo(poRes);
       } catch (error) {
