@@ -15,7 +15,16 @@ import { db } from "../firebase";
 import type { RawMaterialModel } from "../Model/RawMaterial";
 
 const COLLECTION = "poRawMaterials";
-const rawMaterialsCol = collection(db, COLLECTION);
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const rawMaterialsCol = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION);
+
 
 function formatNumber(prefix, num) {
     return prefix + "-" + String(num).padStart(5, "0");
@@ -29,7 +38,7 @@ export const rawMaterialsAPI = {
     },
 
     async get(id: string): Promise<RawMaterialModel & { id: string } | null> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         const snap = await getDoc(ref);
         return snap.exists() ? { id: snap.id, ...(snap.data() as RawMaterialModel) } : null;
     },
@@ -50,12 +59,12 @@ export const rawMaterialsAPI = {
     },
 
     async update(id: string, patch: Partial<RawMaterialModel>) {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await updateDoc(ref, { ...patch, updatedAt: Timestamp.now() });
     },
 
     async remove(id: string) {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await deleteDoc(ref);
     },
     async getLogs(id) {

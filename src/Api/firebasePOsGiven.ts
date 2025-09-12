@@ -19,8 +19,15 @@ import { rawMaterialsAPI } from "./firebaseRawMaterial";
 
 // ---------- Firestore wiring ----------
 const COLLECTION = "poGivenManagement"; // keep the same name you used elsewhere
-const poCol = collection(db, COLLECTION);
-
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const poCol = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION);
 // ---------- API ----------
 export const poGivenAPI = {
     async getAll(): Promise<any[]> {
@@ -30,7 +37,7 @@ export const poGivenAPI = {
     },
 
     async get(id: string): Promise<POGivenModel | null> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             return null
@@ -66,16 +73,17 @@ export const poGivenAPI = {
                 quantity: rm.quantity,
                 estimatedPrice: rm.estimatePrice,
                 actualPrice: rm.actualPrice,
+                gst: rm.gst || 0,
                 total: rm.total
             }
-            await addDoc(collection(db, "poRawMaterials", rm.materialId, "logs"), RawMaterialProductPayload);
+            await addDoc(collection(db, "companies", usersDetails.asCompanies[0].companyId, "poRawMaterials", rm.materialId, "logs"), RawMaterialProductPayload);
 
         }
         return { id: docRef.id, ...payload }
     },
 
     async remove(id: string): Promise<void> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await deleteDoc(ref);
     },
 
@@ -90,7 +98,7 @@ export const poGivenAPI = {
         //         return res.id;
         //     }
         // }))
-        const ref = doc(db, COLLECTION, id)
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id)
         await updateDoc(ref, {
             ...patch,
             // products,
@@ -99,7 +107,7 @@ export const poGivenAPI = {
     },
 
     async updateStatus(id: string, patch: Partial<POGivenModel>): Promise<void> {
-        const ref = doc(db, COLLECTION, id)
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id)
         await updateDoc(ref, {
             ...patch,
             updatedAt: serverTimestamp() as any,

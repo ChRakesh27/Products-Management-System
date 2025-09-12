@@ -1,7 +1,9 @@
-const currency = (n: number) =>
+const currency = (n: number, currency = "INR") =>
     new Intl.NumberFormat(undefined, {
         style: "currency",
-        currency: "INR",
+        currency,
     }).format(n || 0);
 
 export default currency
+
+

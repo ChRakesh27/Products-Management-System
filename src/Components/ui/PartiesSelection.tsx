@@ -1,6 +1,5 @@
-// components/BuyerSelect.tsx
 import { Check, ChevronsUpDown, Mail } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 import { cn } from "../../lib/utils";
 import type { PartnerModel } from "../../Model/VendorModel";
 import { Badge } from "./badge";
@@ -30,7 +29,7 @@ export function PartiesSelection({
   className?: string;
   disabled?: boolean;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const selected = value ? parties.find((p) => p.id === value) ?? value : null;
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -47,12 +46,14 @@ export function PartiesSelection({
             className
           )}
         >
-          {selected ? selected.name : placeholder}
+          {selected && typeof selected !== "string"
+            ? selected.name
+            : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[790px]  p-0" align="start">
+      <PopoverContent className="w-[500px]  p-0" align="start">
         <Command filter={(v, s) => (v.toLowerCase().includes(s) ? 1 : 0)}>
           <CommandInput placeholder="Search buyer by name/email…" />
           <CommandList>
@@ -69,9 +70,8 @@ export function PartiesSelection({
                       name: p.name,
                       email: p.email,
                       phone: p.phone,
-                      address: p.address,
-                      pinCode: p.pinCode,
-                      state: p.state,
+                      shippingAddress: p.shippingAddress,
+                      billingAddress: p.billingAddress,
                       gstNumber: p.gstNumber,
                     });
                     setOpen(false);
@@ -86,13 +86,13 @@ export function PartiesSelection({
                   />
                   <div className="min-w-0">
                     <div className="truncate font-medium">{p.name}</div>
-                    {(p.email || p.state) && (
+                    {(p.email || p.billingAddress.state) && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         {p.email && <Mail className="h-3 w-3" />}
                         <span className="truncate">
                           {p.email ?? ""}
-                          {p.email && p.state ? " • " : ""}
-                          {p.state ?? ""}
+                          {p.email && p.billingAddress.state ? " • " : ""}
+                          {p.billingAddress.state ?? ""}
                         </span>
                       </div>
                     )}

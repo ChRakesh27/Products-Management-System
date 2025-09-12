@@ -15,9 +15,16 @@ import { db } from "../firebase";
 import type { ManufactureModel } from "../Model/DailyProductionModel";
 
 
-const COL = "poManufactures";
-const colRef = collection(db, COL);
-
+const COLLECTION = "poManufactures";
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const colRef = collection(db, "companies", usersDetails?.asCompanies[0]?.companyId, COLLECTION);
 export const manufacturesAPI = {
     async getAll(): Promise<ManufactureModel[]> {
         const q = query(colRef, orderBy("createdAt", "desc"));
@@ -27,7 +34,7 @@ export const manufacturesAPI = {
     },
 
     async get(id: string): Promise<ManufactureModel | null> {
-        const ref = doc(db, COL, id);
+        const ref = doc(db, COLLECTION, id);
         const snap = await getDoc(ref);
         return snap.exists() ? ({ id: snap.id, ...(snap.data() as ManufactureModel) }) : null;
     },
@@ -44,7 +51,7 @@ export const manufacturesAPI = {
     },
 
     async update(id: string, patch: Partial<ManufactureModel>) {
-        const ref = doc(db, COL, id);
+        const ref = doc(db, COLLECTION, id);
         const safePatch: any = {
             ...patch,
             updatedAt: Timestamp.now(),
@@ -54,6 +61,6 @@ export const manufacturesAPI = {
     },
 
     async delete(id: string) {
-        await deleteDoc(doc(db, COL, id));
+        await deleteDoc(doc(db, COLLECTION, id));
     },
 };

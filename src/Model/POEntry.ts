@@ -1,5 +1,6 @@
 import type { TimestampModel } from "./Date";
 import type { ProductMaterialModel } from "./ProductModel";
+import type { PartnerModel } from "./VendorModel";
 
 
 interface PartyModel {
@@ -18,7 +19,10 @@ interface ProductModel {
     id: string;
     name: string;
     description: string;
-    size: string;
+    sizeQty: {
+        size: string;
+        quantity: number;
+    }[];
     color: string;
     unitType: string;
     quantityOrdered: number;
@@ -44,11 +48,24 @@ export interface POReceivedModel {
     createdAt?: TimestampModel;
     updatedAt?: TimestampModel;
     notes: string;
-    termConditions: string;
+    terms: string;
     preparedBy: string;
     verifiedBy: string;
     approvedBy: string;
     acceptedBy: string;
+    bank: BankModel;
+    currency: {
+        code: string;
+        name: string;
+        symbol: string;
+    };
+    fileUrl: any;
+    destination: string;
+    paymentTerms: string;
+    poType: string;
+    dispatchTrough: "Air" | "Water" | "Road" | "Track";
+    billFrom: PartnerModel;
+
 }
 
 interface RawMaterialModel {
@@ -84,5 +101,30 @@ export interface POGivenModel {
     createdAt?: TimestampModel;
     updatedAt?: TimestampModel;
     notes: string;
-    termConditions: string;
+    terms: string;
+    destination: string;
+    paymentTerms: string;
+    poType: string;
+    dispatchTrough: "Air" | "Water" | "Road" | "Track";
+    currency: {
+        code: string;
+        name: string;
+        symbol: string;
+    };
+    preparedBy: string;
+    verifiedBy: string;
+    approvedBy: string;
+    acceptedBy: string;
+    bank: BankModel;
+    billFrom: PartnerModel;
+}
+
+
+interface BankModel {
+    beneficiaryName: string;
+    bank: string;
+    bankAddress: string;
+    bankAccount: string;
+    swiftCode: string;
+    ifscCode: string;
 }

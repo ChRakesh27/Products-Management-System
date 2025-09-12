@@ -13,6 +13,9 @@ import type { PartnerModel } from "../Model/VendorModel";
 export type VendorCreate = Omit<PartnerModel, "id" | "createdAt" | "updatedAt">;
 
 const COLLECTION = "poVendors";
+
+
+
 // Converter: map Firestore Timestamp <-> JS Date for createdAt
 const vendorConverter: FirestoreDataConverter<PartnerModel> = {
     toFirestore(v: WithFieldValue<PartnerModel>): DocumentData {
@@ -33,8 +36,15 @@ const vendorConverter: FirestoreDataConverter<PartnerModel> = {
 };
 
 
-const vendorsCol = collection(db, COLLECTION).withConverter(vendorConverter);
-
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const vendorsCol = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION).withConverter(vendorConverter);;
 
 export const vendorsAPI = {
     async list(party = "all"): Promise<PartnerModel[]> {
@@ -46,7 +56,7 @@ export const vendorsAPI = {
         return snap.docs.map((d) => d.data());
     },
     async get(id: string): Promise<PartnerModel | null> {
-        const ref = doc(db, COLLECTION, id).withConverter(vendorConverter);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id).withConverter(vendorConverter);
         const snap = await getDoc(ref);
         return snap.exists() ? snap.data() : null;
     },
@@ -60,11 +70,11 @@ export const vendorsAPI = {
         return fresh.data()!;
     },
     async update(id: string, patch: UpdateData<PartnerModel>): Promise<void> {
-        const ref = doc(db, COLLECTION, id).withConverter(vendorConverter);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id).withConverter(vendorConverter);
         await updateDoc(ref, patch);
     },
     async remove(id: string): Promise<void> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await deleteDoc(ref);
     },
 };

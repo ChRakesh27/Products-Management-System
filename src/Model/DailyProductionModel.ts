@@ -42,9 +42,6 @@ export interface productionModel {
 export interface DailyProductionModel {
     id?: string;
     date: TimestampModel;
-    production: productionModel | {};
-    materials: MaterialRow[] | [];
-    machines: MaterialRow[] | [];
     createdAt?: TimestampModel;
     updatedAt?: TimestampModel;
 }

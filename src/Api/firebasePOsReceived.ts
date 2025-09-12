@@ -11,7 +11,8 @@ import {
     serverTimestamp,
     updateDoc
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { db, storage } from "../firebase";
 import type { POReceivedModel } from "../Model/POEntry";
 import type { ProductPoReceivedModel } from "../Model/ProductModel";
 import type { RawMaterialPoReceivedModel } from "../Model/RawMaterial";
@@ -19,7 +20,15 @@ import { productsAPI } from "./firebaseProducts";
 
 // ---------- Firestore wiring ----------
 const COLLECTION = "poReceivedManagement"; // keep the same name you used elsewhere
-const poCol = collection(db, COLLECTION);
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const poCol = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION);
 
 // ---------- API ----------
 export const poReceivedAPI = {
@@ -30,7 +39,7 @@ export const poReceivedAPI = {
     },
 
     async get(id: string): Promise<POReceivedModel | null> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             return null
@@ -45,43 +54,54 @@ export const poReceivedAPI = {
     },
 
     async create(input: Omit<POReceivedModel, "createdAt" | "updatedAt">): Promise<any> {
+        let downloadURL = null;
+        if (input?.fileUrl && input?.fileUrl?.name) {
+            const storageRef = ref(storage, `poCustomers/${input.fileUrl.name}`);
+            await uploadBytes(storageRef, input.fileUrl);
+            downloadURL = await getDownloadURL(storageRef);
+        }
+
         const payload = {
             ...input,
+            fileUrl: downloadURL,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any,
         };
 
-        const ref = await addDoc(poCol, payload);
+
+
+        const docRef = await addDoc(poCol, payload);
         for (const p of input.products) {
             const pPayload: ProductPoReceivedModel = {
                 type: "PoReceived",
-                refId: ref.id,
+                refId: docRef.id,
                 poNo: input.poNo,
-                quantity: p.quantityOrdered,
-                unitPrice: p.unitPrice,
+                quantity: +p.quantityOrdered,
+                unitPrice: +p.unitPrice,
+                gst: +p.gst || 0,
                 total: p.totalAmount,
             }
-            await addDoc(collection(db, "poProducts", p.id, "logs"), pPayload);
+            await addDoc(collection(db, "companies", usersDetails.asCompanies[0].companyId, "poProducts", p.id, "logs"), pPayload);
             for (const rm of p.rawMaterials) {
-                const qty = rm.quantity * p.quantityOrdered;
+                const qty = +rm.quantity * +p.quantityOrdered;
                 const rmPayload: RawMaterialPoReceivedModel = {
                     type: "PoReceived",
-                    refId: ref.id,
+                    refId: docRef.id,
                     poNo: input.poNo,
-                    quantity: qty,
+                    quantity: +qty,
                     estimatedPrice: rm.estimatedPrice,
-                    // poPrice:rm
+                    gst: +rm.gst || 0,
                     total: qty * rm.estimatedPrice,
                 }
-                await addDoc(collection(db, "poRawMaterials", rm.materialId, "logs"), rmPayload);
+                await addDoc(collection(db, "companies", usersDetails.asCompanies[0].companyId, "poRawMaterials", rm.materialId, "logs"), rmPayload);
             }
         }
 
-        return { id: ref.id, ...payload }
+        return { id: docRef.id, ...payload }
     },
 
     async remove(id: string): Promise<void> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await deleteDoc(ref);
     },
 
@@ -103,15 +123,22 @@ export const poReceivedAPI = {
                 return res.id;
             }
         }))
-        const ref = doc(db, COLLECTION, id)
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id)
         await updateDoc(ref, {
             ...patch,
             products,
             updatedAt: serverTimestamp() as any,
         } as any);
     },
+    async updateProduction(id: string, products): Promise<void> {
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id)
+        await updateDoc(ref, {
+            products,
+            updatedAt: serverTimestamp() as any,
+        } as any);
+    },
     async updateStatus(id: string, patch: Partial<POReceivedModel>): Promise<void> {
-        const ref = doc(db, COLLECTION, id)
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id)
         await updateDoc(ref, {
             ...patch,
             updatedAt: serverTimestamp() as any,

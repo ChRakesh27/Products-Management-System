@@ -7,8 +7,16 @@ import {
 import { useLoading } from "../../context/LoadingContext";
 import { Button } from "../ui/button";
 
-// ── Types ──────────────────────────────────────────────────────────────
-export type TimestampModel = Timestamp;
+import { Info } from "lucide-react";
+import { Badge } from "../ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Separator } from "../ui/separator";
 
 type DailyEntry = {
   target: number;
@@ -20,7 +28,6 @@ type DayMap = Record<string, DailyEntry>; // key = yyyy-mm-dd
 
 // If your PO object looks like this:
 type ProductLite = { id: string; name: string };
-type POData = { products?: ProductLite[] } | undefined;
 
 // ── Utils ──────────────────────────────────────────────────────────────
 const fmt = (d: Date) =>
@@ -42,14 +49,12 @@ function monthDays(year: number, monthIndex: number) {
   return days;
 }
 
-// Try to read a DailyEntry from the backend doc shape (defensive)
 function extractEntry(
   existing: any,
   productId: string | undefined
 ): DailyEntry | undefined {
   if (!existing) return undefined;
 
-  // If backend stores per-product field (recommended):
   if (productId && existing[productId]) {
     const v = existing[productId];
     if (typeof v?.target === "number" || typeof v?.output === "number") {
@@ -83,26 +88,20 @@ function extractEntry(
 }
 
 // ── Component ─────────────────────────────────────────────────────────
-export default function ProductionData({ poData }: { poData?: POData }) {
+export default function ProductionData({ poData }) {
   const today = new Date();
   const [month, setMonth] = useState<number>(today.getMonth());
   const [year, setYear] = useState<number>(today.getFullYear());
 
   const products = (poData?.products || []) as ProductLite[];
-  const [selectedProduct, setSelectedProduct] = useState<string>(
-    products[0]?.id ?? ""
-  );
-
+  const [selectedProduct, setSelectedProduct] = useState<any>(products[0]);
   const [dayMap, setDayMap] = useState<DayMap>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerDate, setDrawerDate] = useState<Date | null>(null);
   const [drawerData, setDrawerData] = useState<DailyEntry>({ ...blankEntry });
   const [saving, setSaving] = useState(false);
   const { setLoading } = useLoading();
-
   const days = useMemo(() => monthDays(year, month), [month, year]);
-
-  // Load all docs for current month
   async function ensureMonthLoaded(productId: string | undefined) {
     try {
       setLoading(true);
@@ -124,11 +123,12 @@ export default function ProductionData({ poData }: { poData?: POData }) {
     }
   }
 
-  // Initial + when product changes (so each product can have its own entries)
   useEffect(() => {
-    ensureMonthLoaded(selectedProduct);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProduct, month, year]);
+    if (!selectedProduct?.id) {
+      return;
+    }
+    ensureMonthLoaded(selectedProduct.id);
+  }, [selectedProduct?.id, month, year]);
 
   // Open drawer for a date
   function openDrawerFor(date: Date) {
@@ -143,23 +143,24 @@ export default function ProductionData({ poData }: { poData?: POData }) {
     try {
       setSaving(true);
       const ts = Timestamp.fromDate(drawerDate);
-
-      // Recommended: store per-product field to avoid collisions
-      const fieldKey = selectedProduct || "production";
-
-      // Your API previously: upsertDailyProductionForDate(ts, fieldName, value)
-      await upsertDailyProductionForDate(ts, fieldKey, {
-        target: Number(drawerData.target || 0),
-        output: Number(drawerData.output || 0),
-        remark: String(drawerData.remark || ""),
-      });
+      const fieldKey = selectedProduct.id;
+      await upsertDailyProductionForDate(
+        ts,
+        fieldKey,
+        {
+          target: Number(drawerData.target || 0),
+          output: Number(drawerData.output || 0),
+          remark: String(drawerData.remark || ""),
+        },
+        poData.id,
+        products
+      );
 
       const key = drawerDate.toISOString().slice(0, 10);
       setDayMap((m) => ({ ...m, [key]: { ...drawerData } }));
       setDrawerOpen(false);
     } catch (e) {
       console.error(e);
-      alert("Failed to save production log");
     } finally {
       setSaving(false);
     }
@@ -168,31 +169,7 @@ export default function ProductionData({ poData }: { poData?: POData }) {
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Month / Year pickers (optional) */}
-        {/* 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Month</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-          >
-            {Array.from({ length: 12 }).map((_, i) => (
-              <option key={i} value={i}>
-                {new Date(2025, i, 1).toLocaleString("en-US", { month: "short" })}
-              </option>
-            ))}
-          </select>
-          <input
-            className="border rounded px-2 py-1 w-24"
-            type="number"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          />
-        </div>
-        */}
-
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Product selector */}
         {products.length > 0 && (
           <div className="flex items-center gap-2">
@@ -201,10 +178,12 @@ export default function ProductionData({ poData }: { poData?: POData }) {
               {products.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => setSelectedProduct(p.id)}
+                  onClick={() => {
+                    setSelectedProduct(p);
+                  }}
                   className={
                     "px-3 py-1 rounded border text-sm " +
-                    (selectedProduct === p.id
+                    (selectedProduct?.id === p.id
                       ? "bg-black text-white"
                       : "bg-white text-black hover:bg-black/5")
                   }
@@ -215,20 +194,43 @@ export default function ProductionData({ poData }: { poData?: POData }) {
             </div>
           </div>
         )}
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Month</label>
+          <select
+            className="border rounded px-2 py-1"
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+          >
+            {Array.from({ length: 12 }).map((_, i) => (
+              <option key={i} value={i}>
+                {new Date(2025, i, 1).toLocaleString("en-US", {
+                  month: "short",
+                })}
+              </option>
+            ))}
+          </select>
+          <input
+            className="border rounded px-2 py-1 w-24"
+            type="number"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+          />
+        </div>
       </div>
       <ProductOrderCard
         item={{
-          totalAmount: 34636.665,
-          gst: "12%", // or gstPct: 12
-          name: "OverALL(Green)",
-          productionQty: 12,
-          id: "XQXXy1COiEBt7epwKdju",
-          unitPrice: 1649.365,
-          size: "XS-XXL",
-          unitType: "Piece",
-          description: "",
-          quantityOrdered: "21",
-          color: "Green",
+          totalAmount: selectedProduct?.totalAmount || "",
+          gst: selectedProduct?.gst || "",
+          name: selectedProduct?.name || "",
+          productionQty: selectedProduct?.productionQty || "",
+          id: selectedProduct?.id || "",
+          unitPrice: selectedProduct?.unitPrice || "",
+          size: selectedProduct?.size || "",
+          unitType: selectedProduct?.unitType || "",
+          description: selectedProduct?.description || "",
+          quantityOrdered: selectedProduct?.quantityOrdered || "",
+          color: selectedProduct?.color || "",
         }}
       />
       {/* Grid */}
@@ -359,17 +361,6 @@ export default function ProductionData({ poData }: { poData?: POData }) {
   );
 }
 
-import { Info } from "lucide-react";
-import { Badge } from "../ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import { Separator } from "../ui/separator";
-
 type ProductOrder = {
   id: string;
   name: string;
@@ -384,12 +375,6 @@ type ProductOrder = {
   gst?: number | string; // e.g. "12%" or 12
   description?: string;
 };
-
-const INR = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 2,
-});
 
 const colorDot = (color: string) => {
   const m: Record<string, string> = {
@@ -428,7 +413,7 @@ function ProductOrderCard({ item }: { item: ProductOrder }) {
   const grandTotal = (item.totalAmount || 0) + gstAmt;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-5">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

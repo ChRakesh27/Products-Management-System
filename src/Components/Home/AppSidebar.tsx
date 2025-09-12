@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Sidebar,
@@ -25,6 +25,7 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 
+import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
@@ -40,17 +41,16 @@ const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 // Determine active route using window.location as a fallback
 const useActivePath = () => {
-  const [path, setPath] = React.useState(() =>
+  const [path, setPath] = useState(() =>
     typeof window !== "undefined" ? window.location.pathname : "/"
   );
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = () => setPath(window.location.pathname);
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, []);
   return path;
 };
-
 // ---- Data -----------------------------------------------------------------
 const NAV = [
   {
@@ -78,6 +78,7 @@ const NAV = [
 export function AppSidebar() {
   const activePath = useActivePath();
   const [collapsed, setCollapsed] = React.useState(false);
+  const usersDetails = useSelector((state: any) => state?.users);
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -170,19 +171,18 @@ export function AppSidebar() {
             )}
           >
             <Avatar className="size-7">
-              <AvatarFallback className="text-[10px]">PV</AvatarFallback>
+              <AvatarFallback className="text-[10px]">
+                {usersDetails.name[0]}
+              </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="min-w-0">
                 <div className="text-xs font-medium leading-tight">
-                  Prateek V
-                </div>
-                <div className="text-[11px] text-muted-foreground leading-tight">
-                  Admin · v1.3.0
+                  {usersDetails.name}
                 </div>
               </div>
             )}
-            <div className="ml-auto flex items-center gap-1">
+            {/* <div className="ml-auto flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -198,7 +198,7 @@ export function AppSidebar() {
                 </TooltipTrigger>
                 <TooltipContent side="right">Settings</TooltipContent>
               </Tooltip>
-            </div>
+            </div> */}
           </div>
         </SidebarFooter>
       </Sidebar>

@@ -18,7 +18,15 @@ import type { RawMaterialModel } from "../Model/RawMaterial";
 import { rawMaterialsAPI } from "./firebaseRawMaterial";
 
 const COLLECTION = "poProducts";
-const productsCol = collection(db, COLLECTION);
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const productsCol = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION);
 
 function formatNumber(prefix, num) {
     return prefix + "-" + String(num).padStart(5, "0");
@@ -37,7 +45,7 @@ export const productsAPI = {
     },
 
     async get(id: string): Promise<ProductModel | null> {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         const snap = await getDoc(ref);
         if (!snap.exists()) return null;
         const data = snap.data();
@@ -61,7 +69,7 @@ export const productsAPI = {
         const updatedRawMaterials: ProductMaterialModel[] = []
         const querySnapshotPC = await getDocs(productsCol);
         const productCount = (querySnapshotPC.size || 0) + 1
-        const querySnapshotMC = await getDocs(collection(db, "rawMaterials"));
+        const querySnapshotMC = await getDocs(collection(db, "companies", usersDetails.asCompanies[0].companyId, "rawMaterials"));
         let materialCount = (querySnapshotMC.size || 0) + 1
 
         if (rawMaterials?.length) {
@@ -70,7 +78,7 @@ export const productsAPI = {
                 if (!materialId) {
                     const RawMaterialPayload: RawMaterialModel = {
                         uid: formatNumber("MA", materialCount),
-                        gst: +rm.gst,
+                        gst: +rm.gst || 0,
                         name: rm.name,
                         description: rm.description,
                         size: rm.size,
@@ -126,7 +134,7 @@ export const productsAPI = {
                     estimatedPrice: rm.estimatedPrice,
                     total: rm.totalAmount,
                 }
-                await addDoc(collection(db, "poRawMaterials", rm.materialId, "logs"), RawMaterialProductPayload);
+                await addDoc(collection(db, "companies", usersDetails.asCompanies[0].companyId, "poRawMaterials", rm.materialId, "logs"), RawMaterialProductPayload);
             }
         }
         return fresh!;
@@ -134,7 +142,7 @@ export const productsAPI = {
 
     async update(id: string, patch: Partial<ProductModel>) {
         const { rawMaterials, ...rest } = patch;
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await updateDoc(ref, { ...rest, updatedAt: Timestamp.now() });
         if (rawMaterials) {
             const rawCol = collection(ref, "rawMaterials");
@@ -152,13 +160,13 @@ export const productsAPI = {
         }
     },
     async updateStatus(id: string, value: string) {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await updateDoc(ref, { status: value, updatedAt: Timestamp.now() });
     },
 
     // async update(id: string, patch: Partial<ProductModel>) {
     //     const { rawMaterials, ...rest } = patch;
-    //     const ref = doc(db, COLLECTION, id);
+    //     const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
     //     await updateDoc(ref, { ...rest, updatedAt: Timestamp.now() });
     //     if (rawMaterials) {
     //         const rawCol = collection(ref, "rawMaterials");
@@ -177,7 +185,7 @@ export const productsAPI = {
     // },
 
     async remove(id: string) {
-        const ref = doc(db, COLLECTION, id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, id);
         await deleteDoc(ref);
     },
     async getLogs(id) {

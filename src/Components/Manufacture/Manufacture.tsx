@@ -1,20 +1,15 @@
-import { Box, Clipboard, Factory, Settings } from "lucide-react";
+import { Box, Clipboard, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { manufacturesAPI } from "../../Api/firebaseManufacture";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
-import { productsAPI } from "../../Api/firebaseProducts";
 import { useLoading } from "../../context/LoadingContext";
 import type { POReceivedModel } from "../../Model/POEntry";
-import Machine from "./Machine";
-import MaterialUsage from "./MaterialUsage";
 import ProductionData from "./ProductionData";
-import ProductView from "./ProductView";
 
 function Manufacture() {
   const { id } = useParams();
   const [currentTab, setCurrentTab] = useState("production");
-  const [product, setProduct] = useState({});
   const [po, setPo] = useState<POReceivedModel>();
 
   const { setLoading } = useLoading();
@@ -25,9 +20,6 @@ function Manufacture() {
         const res = await manufacturesAPI.get(id);
         const poRes = await poReceivedAPI.get(res.poId);
         setPo(poRes);
-        console.log("🚀 ~ fetchProduct ~ poRes:", poRes);
-        const product = await productsAPI.get(res.products[0].id);
-        setProduct(product);
       } catch (error) {
         console.log("🚀 ~ fetchProduct ~ error:", error);
       } finally {
@@ -40,13 +32,15 @@ function Manufacture() {
   const tabs = [
     { id: "production", label: "Production Data", icon: Factory },
     { id: "products", label: "Products", icon: Box },
-    { id: "materials", label: "Material Usage", icon: Box },
+    // { id: "materials", label: "Material Usage", icon: Box },
     // { id: "quality", label: "Quality Control", icon: CheckCircle },
     // { id: "inventory", label: "Inventory", icon: Layers },
     // { id: "workforce", label: "Workforce", icon: Users },
-    { id: "machines", label: "Machines", icon: Settings },
+    // { id: "machines", label: "Machines", icon: Settings },
   ];
-
+  if (!po) {
+    return <div>Loading..</div>;
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -67,7 +61,7 @@ function Manufacture() {
       </header>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200 px-6">
+      {/* <div className="bg-white border-b border-gray-200 px-6">
         <div className="flex space-x-8 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -87,18 +81,19 @@ function Manufacture() {
             );
           })}
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
-      <div className="px-6 py-6">
-        {currentTab === "production" && <ProductionData poData={po} />}
+      {/* <div className="px-6 py-6">
+        {currentTab === "production" &&  <ProductionData poData={po} />}
         {currentTab === "products" && <ProductView products={po.products} />}
         {currentTab === "materials" && (
           <MaterialUsage productData={product} products={po.products} />
         )}
         {currentTab === "machines" && <Machine />}
-
-        {/* Submit Button */}
+      </div> */}
+      <div className="px-6 py-6">
+        <ProductionData poData={po} />
       </div>
     </div>
   );

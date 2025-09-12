@@ -15,18 +15,19 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { DailyProductionModel } from "../Model/DailyProductionModel";
+import { poReceivedAPI } from "./firebasePOsReceived";
 
 // collection name
 const COLLECTION = "dailyProduction";
-
-const col = collection(db, COLLECTION);
-
-// midnight Timestamp for YYYY-MM-DD
-const tsForISODate = (yyyyMmDd: string) => {
-    const d = new Date(`${yyyyMmDd}T00:00:00`);
-    return Timestamp.fromDate(d);
-};
-
+let usersDetails: any;
+const storedUser = localStorage.getItem("user");
+const loginData = JSON.parse(storedUser)
+if (storedUser && loginData.siteName == "prod-mang-sys") {
+    usersDetails = {
+        ...loginData,
+    };
+}
+const col = collection(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION);
 
 
 // find doc for a given ISO date
@@ -39,23 +40,17 @@ export async function getDailyDocByDate(dateTS) {
 }
 export async function getDailyDocByCurrentMonth() {
     const now = new Date();
-    // first day of current month
     const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-    // last day of current month
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
     const startTS = Timestamp.fromDate(start);
     const endTS = Timestamp.fromDate(end);
-
     const q = query(
         col,
         where("date", ">=", startTS),
         where("date", "<=", endTS)
     );
-
     const snap = await getDocs(q);
     if (snap.empty) return [];
-
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as DailyProductionModel) }));
 }
 
@@ -71,13 +66,24 @@ async function createDailyDoc(payload: DailyProductionModel) {
 }
 
 // update machines for date (non-destructive to other fields)
-export async function upsertDailyProductionForDate(dateTS, field: string, value: unknown) {
+export async function upsertDailyProductionForDate(dateTS, productId: string, value: any, poId: string, products: any) {
     const existing = await getDailyDocByDate(dateTS);
+    const updatedProducts = products.map(p => {
+        if (p.id == productId) {
+            if (existing?.id) {
+                p.productionQty += value.output - (existing[productId]?.output || 0)
+            } else {
+                p.productionQty += value.output || 0;
+            }
+        }
+        return p
+    })
+    await poReceivedAPI.updateProduction(poId, updatedProducts)
 
     if (existing?.id) {
-        const ref = doc(db, COLLECTION, existing.id);
+        const ref = doc(db, "companies", usersDetails.asCompanies[0].companyId, COLLECTION, existing.id);
         await updateDoc(ref, {
-            [field]: value,
+            [productId]: value,
             updatedAt: Timestamp.now(),
         });
         const fresh = await getDoc(ref);
@@ -85,10 +91,7 @@ export async function upsertDailyProductionForDate(dateTS, field: string, value:
     }
     const payload: DailyProductionModel = {
         date: dateTS,
-        production: {},
-        materials: [],
-        machines: [],
     }
-    payload[field] = value;
+    payload[productId] = value;
     return createDailyDoc(payload);
 }

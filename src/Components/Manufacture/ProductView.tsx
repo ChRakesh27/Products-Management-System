@@ -18,7 +18,7 @@ import {
 export default function ProductView({ products }) {
   return (
     <div className="max-w-4xl mx-auto py-6">
-      <Card>
+      <Card className="py-5">
         <CardHeader>
           <CardTitle>Purchase Order Products</CardTitle>
         </CardHeader>
