@@ -16,6 +16,7 @@ import { db, storage } from "../firebase";
 import type { POReceivedModel } from "../Model/POEntry";
 import type { ProductPoReceivedModel } from "../Model/ProductModel";
 import type { RawMaterialPoReceivedModel } from "../Model/RawMaterial";
+import { getCompanyById } from "./firebaseCompany";
 import { productsAPI } from "./firebaseProducts";
 
 // ---------- Firestore wiring ----------
@@ -54,15 +55,35 @@ export const poReceivedAPI = {
     },
 
     async create(input: Omit<POReceivedModel, "createdAt" | "updatedAt">): Promise<any> {
-        let downloadURL = null;
-        if (input?.fileUrl && input?.fileUrl?.name) {
-            const storageRef = ref(storage, `poCustomers/${input.fileUrl.name}`);
-            await uploadBytes(storageRef, input.fileUrl);
-            downloadURL = await getDownloadURL(storageRef);
+        let downloadURL = [];
+
+        if (input?.fileUrl && input?.fileUrl.length > 0) {
+            for (const f of input.fileUrl) {
+                const storageRef = ref(storage, `poCustomers/${f.name}`);
+                await uploadBytes(storageRef, f);
+                downloadURL.push(await getDownloadURL(storageRef));
+            }
         }
+        const companyDetails = await getCompanyById();
 
         const payload = {
             ...input,
+            billFrom: {
+                id: companyDetails.id || "",
+                name: companyDetails.name || "",
+                phone: companyDetails.phone || "",
+                email: companyDetails.email || "",
+                website: companyDetails.website || "",
+                panNumber: companyDetails.panNumber || "",
+                companyLogo: companyDetails.companyLogo || "",
+                gst: companyDetails.gst || "",
+                nature: companyDetails.nature || "",
+                address: companyDetails.address || "",
+                city: companyDetails.city || "",
+                state: companyDetails.state || "",
+                stateCode: companyDetails.stateCode || "",
+                pinCode: companyDetails.pinCode || "",
+            },
             fileUrl: downloadURL,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any,

@@ -1,6 +1,5 @@
 import type { TimestampModel } from "./Date";
 import type { ProductMaterialModel } from "./ProductModel";
-import type { PartnerModel } from "./VendorModel";
 
 
 interface PartyModel {
@@ -64,7 +63,22 @@ export interface POReceivedModel {
     paymentTerms: string;
     poType: string;
     dispatchTrough: "Air" | "Water" | "Road" | "Track";
-    billFrom: PartnerModel;
+    billFrom: {
+        id: string;
+        name: string;
+        phone?: string; 0
+        email?: string;
+        website?: string;
+        panNumber?: string;
+        companyLogo?: string;
+        gst?: string;
+        nature?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        stateCode?: string;
+        pinCode?: string;
+    };
 
 }
 
@@ -116,7 +130,22 @@ export interface POGivenModel {
     approvedBy: string;
     acceptedBy: string;
     bank: BankModel;
-    billFrom: PartnerModel;
+    billFrom: {
+        id: string;
+        name: string;
+        phone?: string; 0
+        email?: string;
+        website?: string;
+        panNumber?: string;
+        companyLogo?: string;
+        gst?: string;
+        nature?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        stateCode?: string;
+        pinCode?: string;
+    };
 }
 
 

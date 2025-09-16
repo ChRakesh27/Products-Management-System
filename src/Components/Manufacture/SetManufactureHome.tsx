@@ -124,11 +124,11 @@ export default function SetManufactureHome() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto grid gap-6 py-6">
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto grid gap-6 py-6">
       <Card className="py-6">
         <CardHeader>
           <CardTitle>
-            {isEdit ? "Edit Manufacture" : "Create Manufacture"}
+            {isEdit ? "Edit Work Order" : "Create Work Order"}
           </CardTitle>
         </CardHeader>
 

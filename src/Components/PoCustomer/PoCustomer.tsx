@@ -1,15 +1,17 @@
 import {
+  BarChart3,
   Calendar,
   CheckCircle,
   Circle,
   Clock,
   FileText,
   Filter,
+  Inbox,
   IndianRupee,
   Palette,
   Plus,
   Scissors,
-  Search as SearchIcon,
+  Search,
   Settings,
   Truck,
   X,
@@ -183,7 +185,7 @@ const PoCustomer = () => {
   const POCard = ({ po }: { po: any }) => (
     <div
       className="bg-white p-5 rounded-xl cursor-pointer shadow-sm border hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/po-given/${po.id}`)}
+      onClick={() => navigate(`${po.id}`)}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -251,273 +253,278 @@ const PoCustomer = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Scissors className="w-5 h-5 text-white" />
+      <div className="border-b border-gray-100 bg-white px-3 sticky top-0 z-40 sm:px-6 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <div className="p-2.5 bg-slate-900 rounded-lg">
+                <Inbox className="h-6 w-6 text-white" />
+              </div>
+              PO Management (Customer)
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              PO Management
-            </h1>
           </div>
-          <Button onClick={() => navigate("create")} className="shrink-0">
-            <Plus className="w-4 h-4 mr-2" />
-            New PO Entry
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative">
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search po, ..."
+                className="pl-10 pr-4 py-2.5 w-full sm:w-[280px] border-gray-300 focus:border-slate-400 focus:ring-slate-400 rounded-lg"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+            <Button
+              onClick={() => navigate("create")}
+              className="bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all duration-200 rounded-lg px-6 py-2.5"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add PO Customer
+            </Button>
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
-      <div className="px-4 sm:px-6 py-6 space-y-6">
+      <div className="p-0">
         {/* Overview */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-6 bg-blue-600 rounded-full" />
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                Production Overview
-              </h2>
+        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-gray-700" />
+            <h3 className="text-lg font-semibold text-gray-900">Overview</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <StatTile
+              icon={<FileText className="w-5 h-5 " />}
+              label="Total POs"
+              value={stats.count}
+            />
+            <StatTile
+              icon={<IndianRupee className="w-5 h-5 " />}
+              label="Total Value"
+              value={currency(stats.value)}
+              tone="emerald"
+            />
+            <StatTile
+              icon={<Clock className="w-5 h-5 " />}
+              label="Pending"
+              value={stats.pending}
+              tone="amber"
+            />
+            <StatTile
+              icon={<Settings className="w-5 h-5 " />}
+              label="In Production"
+              value={stats.inProd}
+              tone="sky"
+            />
+            <StatTile
+              icon={<CheckCircle className="w-5 h-5 " />}
+              label="Completed"
+              value={stats.done}
+              tone="emeraldSoft"
+            />
+            <StatTile
+              icon={<X className="w-5 h-5 " />}
+              label="Cancelled"
+              value={stats.cancelled}
+              tone="rose"
+            />
+          </div>
+        </div>
+        <div className="p-4 sm:p-6">
+          {/* Controls */}
+          <div className=" flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setCurrentView("grid")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === "grid"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Grid View
+                </button>
+                <button
+                  onClick={() => setCurrentView("list")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === "list"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  List View
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-500" />
+
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Production">In Production</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-20 rounded-lg border bg-gray-50 animate-pulse"
+          {/* Grid View */}
+          {currentView === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-48 rounded-xl border bg-gray-50 animate-pulse"
+                    />
+                  ))
+                : filteredPOs.map((po) => <POCard key={po.id} po={po} />)}
+
+              {!loading && filteredPOs.length === 0 && (
+                <EmptyState
+                  onCreate={() => navigate("create")}
+                  searchTerm={searchTerm}
                 />
-              ))}
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              <StatTile
-                icon={<FileText className="w-5 h-5 text-gray-500" />}
-                label="Total POs"
-                value={stats.count}
-              />
-              <StatTile
-                icon={<IndianRupee className="w-5 h-5 text-emerald-600" />}
-                label="Total Value"
-                value={currency(stats.value)}
-                tone="emerald"
-              />
-              <StatTile
-                icon={<Clock className="w-5 h-5 text-amber-600" />}
-                label="Pending"
-                value={stats.pending}
-                tone="amber"
-              />
-              <StatTile
-                icon={<Settings className="w-5 h-5 text-sky-600" />}
-                label="In Production"
-                value={stats.inProd}
-                tone="sky"
-              />
-              <StatTile
-                icon={<CheckCircle className="w-5 h-5 text-emerald-600" />}
-                label="Completed"
-                value={stats.done}
-                tone="emeraldSoft"
-              />
-              <StatTile
-                icon={<X className="w-5 h-5 text-rose-600" />}
-                label="Cancelled"
-                value={stats.cancelled}
-                tone="rose"
-              />
+          )}
+
+          {/* List View */}
+          {currentView === "list" && (
+            <div className="hidden md:block border rounded-md overflow-x-auto">
+              {loading ? (
+                <div className="p-6 text-sm text-gray-500">Loading…</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
+                      <TableHead className="w-[22%] font-semibold text-gray-900 px-6">
+                        Purchase Order
+                      </TableHead>
+                      <TableHead className="w-[26%] font-semibold text-gray-900 px-6">
+                        Supplier
+                      </TableHead>
+                      <TableHead className="w-[18%] font-semibold text-gray-900 px-6">
+                        Order Status
+                      </TableHead>
+                      <TableHead className="w-[18%] font-semibold text-gray-900 px-6">
+                        Payment
+                      </TableHead>
+                      <TableHead className="w-[18%] font-semibold text-gray-900 px-6">
+                        Styles
+                      </TableHead>
+                      <TableHead className="w-[16%] text-right font-semibold text-gray-900 px-6">
+                        Total
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {filteredPOs.map((po) => (
+                      <TableRow
+                        key={po.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => navigate(`${po.id}`)}
+                      >
+                        {/* PO */}
+                        <TableCell className="align-top font-semibold text-gray-900 px-6">
+                          <div className="font-semibold text-gray-900">
+                            {po?.poNo || "—"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            PO: {DateFormate(po?.poDate)} · Delivery:{" "}
+                            {DateFormate(po?.deliveryDate)}
+                          </div>
+                        </TableCell>
+
+                        {/* Supplier */}
+                        <TableCell className="align-top font-semibold text-gray-900 px-6">
+                          <div className="text-sm text-gray-900">
+                            <p className="font-medium">
+                              {po?.supplier?.name || "—"}
+                            </p>
+                            <p className="text-gray-600">
+                              {po?.supplier?.phone || "—"}
+                            </p>
+                          </div>
+                        </TableCell>
+                        {/* Status */}
+                        <TableCell className="align-top font-semibold text-gray-900 px-6">
+                          <div className="flex flex-col gap-1">
+                            <Badge
+                              variant="outline"
+                              className={`px-2 py-1 rounded-lg text-xs border ${statusTone(
+                                po?.status
+                              )}`}
+                            >
+                              {pretty(po?.status || "Pending")}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="align-top font-semibold text-gray-900 px-6">
+                          <Badge
+                            variant="outline"
+                            className={`px-3 py-1 rounded-lg text-xs font-medium border ${statusTone(
+                              po?.paymentStatus
+                            )}`}
+                          >
+                            {pretty(po?.paymentStatus)}
+                          </Badge>
+                        </TableCell>
+
+                        {/* Styles */}
+                        <TableCell className="align-top font-semibold text-gray-900 px-6">
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-900">
+                              {po?.products?.length ?? 0} style
+                              {po?.products?.length === 1 ? "" : "s"}
+                            </div>
+                            <div className="text-gray-500 text-xs line-clamp-1">
+                              {safeText(
+                                po?.products?.[0]?.name ??
+                                  po?.products?.[0]?.styleName
+                              )}
+                              {(po?.products?.length ?? 0) > 1 &&
+                                ` +${po.products.length - 1} more`}
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        {/* Total */}
+                        <TableCell className="align-top text-right  font-semibold text-gray-900 px-6">
+                          <span className="text-base sm:text-lg font-semibold text-gray-900">
+                            {currency(Number(po?.totalAmount ?? 0))}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+
+                    {filteredPOs.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <div className="px-6 py-16">
+                            <EmptyState
+                              onCreate={() => navigate("create")}
+                              searchTerm={searchTerm}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           )}
         </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="inline-flex bg-gray-100 rounded-lg p-1">
-              <Button
-                variant={currentView === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setCurrentView("grid")}
-                className="rounded-md"
-              >
-                Grid
-              </Button>
-              <Button
-                variant={currentView === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setCurrentView("list")}
-                className="rounded-md"
-              >
-                List
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <div className="relative flex-1 sm:w-80">
-                <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search POs, buyers, styles…"
-                  className="pl-9"
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="In Production">In Production</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {/* Grid View */}
-        {currentView === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-48 rounded-xl border bg-gray-50 animate-pulse"
-                  />
-                ))
-              : filteredPOs.map((po) => <POCard key={po.id} po={po} />)}
-
-            {!loading && filteredPOs.length === 0 && (
-              <EmptyState
-                onCreate={() => navigate("create")}
-                searchTerm={searchTerm}
-              />
-            )}
-          </div>
-        )}
-
-        {/* List View */}
-        {currentView === "list" && (
-          <div className="rounded-xl border overflow-x-auto bg-white">
-            {loading ? (
-              <div className="p-6 text-sm text-gray-500">Loading…</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30 sticky top-0 z-10 hover:bg-muted/30">
-                    <TableHead className="w-[22%] text-gray-700">
-                      Purchase Order
-                    </TableHead>
-                    <TableHead className="w-[26%] text-gray-700">
-                      Supplier
-                    </TableHead>
-                    <TableHead className="w-[18%] text-gray-700">
-                      Status
-                    </TableHead>
-                    <TableHead className="w-[18%] text-gray-700">
-                      Styles
-                    </TableHead>
-                    <TableHead className="w-[16%] text-right text-gray-700">
-                      Total
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {filteredPOs.map((po) => (
-                    <TableRow
-                      key={po.id}
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => navigate(`/po-given/${po.id}`)}
-                    >
-                      {/* PO */}
-                      <TableCell className="align-top">
-                        <div className="flex items-center gap-3">
-                          {statusIcon(po?.paymentStatus ?? po?.status)}
-                          <div>
-                            <div className="font-semibold text-gray-900">
-                              {safeText(po?.poNo)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {DateFormate(po?.poDate)}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      {/* Supplier */}
-                      <TableCell className="align-top">
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">
-                            {safeText(po?.supplier?.name)}
-                          </div>
-                          <div className="text-gray-600">
-                            {safeText(po?.supplier?.phone)}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      {/* Status */}
-                      <TableCell className="align-top">
-                        <Badge
-                          variant="outline"
-                          className={`px-3 py-1 rounded-lg text-xs font-medium border ${statusTone(
-                            po?.paymentStatus ?? po?.status
-                          )}`}
-                        >
-                          {pretty(po?.paymentStatus ?? po?.status)}
-                        </Badge>
-                      </TableCell>
-
-                      {/* Styles */}
-                      <TableCell className="align-top">
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">
-                            {po?.products?.length ?? 0} style
-                            {po?.products?.length === 1 ? "" : "s"}
-                          </div>
-                          <div className="text-gray-500 text-xs line-clamp-1">
-                            {safeText(
-                              po?.products?.[0]?.name ??
-                                po?.products?.[0]?.styleName
-                            )}
-                            {(po?.products?.length ?? 0) > 1 &&
-                              ` +${po.products.length - 1} more`}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      {/* Total */}
-                      <TableCell className="align-top text-right">
-                        <span className="text-base sm:text-lg font-semibold text-gray-900">
-                          {currency(Number(po?.totalAmount ?? 0))}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-
-                  {filteredPOs.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5}>
-                        <div className="px-6 py-16">
-                          <EmptyState
-                            onCreate={() => navigate("create")}
-                            searchTerm={searchTerm}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -539,20 +546,40 @@ function StatTile({
   tone?: "emerald" | "emeraldSoft" | "amber" | "sky" | "rose" | "slate";
 }) {
   const map = {
-    slate: "bg-gray-50 border-gray-200",
-    emerald: "bg-emerald-50 border-emerald-200",
-    emeraldSoft: "bg-emerald-50/60 border-emerald-200",
-    amber: "bg-amber-50 border-amber-200",
-    sky: "bg-sky-50 border-sky-200",
-    rose: "bg-rose-50 border-rose-200",
+    emeraldSoft: "bg-violet-100 border-violet-200",
+    slate: "bg-slate-100 text-slate-800 border-slate-200",
+    emerald: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    amber: "bg-amber-100 text-amber-800 border-amber-200",
+    sky: "bg-blue-100 text-blue-800 border-blue-200",
+    rose: "bg-red-100 text-red-800 border-red-200",
+  } as const;
+  const iconColorMap = {
+    slate: "bg-slate-600",
+    emerald: "bg-emerald-600",
+    emeraldSoft: "bg-violet-600",
+    amber: "bg-amber-600",
+    sky: "bg-blue-600",
+    rose: "bg-red-600",
   } as const;
   return (
-    <div className={`p-4 rounded-lg border ${map[tone]}`}>
-      <div className="flex items-center justify-center gap-2 mb-1">
-        {icon}
-        <span className="text-xs font-medium text-gray-700">{label}</span>
+    <div
+      className={`rounded-lg border p-4 transition-all duration-200 hover:shadow-sm  ${map[tone]}`}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`shrink-0 p-2 ${iconColorMap[tone]} rounded-lg text-white`}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-medium opacity-80 uppercase tracking-wider">
+            {label}
+          </div>
+          <div className="text-lg sm:text-xl font-bold mt-1 truncate">
+            {value}
+          </div>
+        </div>
       </div>
-      <div className="text-center text-xl font-semibold">{value}</div>
     </div>
   );
 }

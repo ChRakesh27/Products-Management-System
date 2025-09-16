@@ -226,7 +226,7 @@ export default function ProductionData({ poData }) {
           productionQty: selectedProduct?.productionQty || "",
           id: selectedProduct?.id || "",
           unitPrice: selectedProduct?.unitPrice || "",
-          size: selectedProduct?.size || "",
+          sizeQty: selectedProduct?.sizeQty || "",
           unitType: selectedProduct?.unitType || "",
           description: selectedProduct?.description || "",
           quantityOrdered: selectedProduct?.quantityOrdered || "",
@@ -241,7 +241,7 @@ export default function ProductionData({ poData }) {
               <th className="border px-2 py-1 w-28 text-left">Date</th>
               <th className="border px-2 py-1 text-center">Target</th>
               <th className="border px-2 py-1 text-center">Output</th>
-              <th className="border px-2 py-1 text-left">Remark</th>
+              <th className="border px-2 py-1 text-center">Remark</th>
             </tr>
           </thead>
           <tbody>
@@ -365,7 +365,10 @@ type ProductOrder = {
   id: string;
   name: string;
   color: string;
-  size: string;
+  sizeQty: {
+    size: string;
+    quantity: string;
+  }[];
   unitType: string;
   unitPrice: number;
   quantityOrdered: number | string;
@@ -427,10 +430,11 @@ function ProductOrderCard({ item }: { item: ProductOrder }) {
               </span>
               <Separator orientation="vertical" className="h-4" />
               <Badge variant="secondary" className="text-[11px]">
-                {item.size}
-              </Badge>
-              <Badge variant="secondary" className="text-[11px]">
-                XS-12, S-23, M-21
+                {item.sizeQty.map((s, i) => (
+                  <div key={i}>
+                    {s.size}-{s.quantity},
+                  </div>
+                ))}
               </Badge>
               <Badge variant="outline" className="text-[11px]">
                 {item.unitType}

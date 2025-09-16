@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { POGivenModel } from "../Model/POEntry";
+import { getCompanyById } from "./firebaseCompany";
 import { rawMaterialsAPI } from "./firebaseRawMaterial";
 
 
@@ -51,8 +52,25 @@ export const poGivenAPI = {
     },
 
     async create(input: Omit<POGivenModel, "createdAt" | "updatedAt">): Promise<any> {
+        const companyDetails = await getCompanyById()
         const payload = {
             ...input,
+            billFrom: {
+                id: companyDetails.id || "",
+                name: companyDetails.name || "",
+                phone: companyDetails.phone || "",
+                email: companyDetails.email || "",
+                website: companyDetails.website || "",
+                panNumber: companyDetails.panNumber || "",
+                companyLogo: companyDetails.companyLogo || "",
+                gst: companyDetails.gst || "",
+                nature: companyDetails.nature || "",
+                address: companyDetails.address || "",
+                city: companyDetails.city || "",
+                state: companyDetails.state || "",
+                stateCode: companyDetails.stateCode || "",
+                pinCode: companyDetails.pinCode || "",
+            },
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any,
         };

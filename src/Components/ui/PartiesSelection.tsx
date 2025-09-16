@@ -73,6 +73,8 @@ export function PartiesSelection({
                       shippingAddress: p.shippingAddress,
                       billingAddress: p.billingAddress,
                       gstNumber: p.gstNumber,
+                      panNo: p.panNo,
+                      cin: p.cin,
                     });
                     setOpen(false);
                   }}

@@ -1,8 +1,22 @@
+import {
+  Building2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  FileIcon,
+  FileText,
+  Globe2,
+  Truck,
+  Wallet,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -11,8 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import {
   Table,
@@ -23,16 +35,6 @@ import {
   TableRow,
 } from "../ui/table";
 import ToastMSG from "../ui/Toaster";
-import {
-  FileText,
-  Truck,
-  Globe2,
-  Building2,
-  Wallet,
-  Link as LinkIcon,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -91,6 +93,7 @@ const PoCustomerView = () => {
       setLoading(true);
       try {
         const data = await poReceivedAPI.get(id!);
+        console.log("🚀 ~ fetchPOData ~ data:", data);
         setPODetails(data);
       } catch (error) {
         console.error("fetchPOData error:", error);
@@ -132,9 +135,8 @@ const PoCustomerView = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 w-full">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="p-4 md:p-6 w-full space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-xl md:text-2xl font-semibold text-gray-900">
             Purchase Order Details
@@ -210,8 +212,7 @@ const PoCustomerView = () => {
         </div>
       </div>
 
-      {/* Top summary strip */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         <Stat
           label="PO Number"
           value={safe(PODetails?.poNo)}
@@ -239,123 +240,116 @@ const PoCustomerView = () => {
         />
       </div>
 
-      {/* Parties & meta */}
-      <div className="rounded-xl border bg-white p-4 md:p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Supplier */}
-          <Section
-            title="Buyer / Customer"
-            icon={<Building2 className="h-4 w-4" />}
-          >
-            <KV label="Name" value={safe(PODetails?.supplier?.name)} />
-            <KV label="Email" value={safe(PODetails?.supplier?.email)} />
-            <KV label="Phone" value={safe(PODetails?.supplier?.phone)} />
-            <KV label="GST No." value={safe(PODetails?.supplier?.gstNumber)} />
-            <KV
-              label="Billing Address"
-              value={
-                [
-                  PODetails?.supplier?.billingAddress?.address,
-                  PODetails?.supplier?.billingAddress?.pinCode,
-                  PODetails?.supplier?.billingAddress?.state,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "—"
-              }
-            />
-            <KV
-              label="Shipping Address"
-              value={
-                [
-                  PODetails?.supplier?.shippingAddress?.address,
-                  PODetails?.supplier?.shippingAddress?.pinCode,
-                  PODetails?.supplier?.shippingAddress?.state,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "—"
-              }
-            />
-          </Section>
-
-          {/* Bill From */}
-          <Section title="Bill From" icon={<Wallet className="h-4 w-4" />}>
-            <KV
-              label="Origin"
-              value={
-                [
-                  PODetails?.billFrom?.address,
-                  PODetails?.billFrom?.pinCode,
-                  PODetails?.billFrom?.state,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "—"
-              }
-            />
-            <KV label="Destination" value={safe(PODetails?.destination)} />
-            <KV
-              label="Dispatch Through"
-              value={safe(PODetails?.dispatchTrough)}
-            />
-            <KV label="PO Type" value={safe(PODetails?.poType)} />
-            <KV
-              label="Terms of Payment"
-              value={safe(PODetails?.paymentTerms)}
-            />
-          </Section>
-
-          {/* Banking / Links */}
-          <Section title="Bank & Files" icon={<Globe2 className="h-4 w-4" />}>
-            <KV
-              label="Beneficiary"
-              value={safe(PODetails?.bank?.beneficiaryName)}
-            />
-            <KV label="Bank" value={safe(PODetails?.bank?.bank)} />
-            <KV label="Account" value={safe(PODetails?.bank?.bankAccount)} />
-            <KV label="IFSC" value={safe(PODetails?.bank?.ifscCode)} />
-            <KV label="SWIFT" value={safe(PODetails?.bank?.swiftCode)} />
-            <KV
-              label="Bank Address"
-              value={safe(PODetails?.bank?.bankAddress)}
-            />
-
-            <div className="mt-2">
-              <Label className="text-xs text-muted-foreground">PO File</Label>
-              {PODetails?.fileUrl ? (
-                <a
-                  href={PODetails.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-blue-700 hover:underline"
-                >
-                  <LinkIcon className="h-4 w-4" /> View / Download
-                </a>
-              ) : (
-                <div className="text-sm text-gray-600">—</div>
-              )}
-            </div>
-          </Section>
-        </div>
-
-        <Separator />
-
-        {/* Prepared/Verified/etc */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <KV label="Prepared By" value={safe(PODetails?.preparedBy)} />
-          <KV label="Verified By" value={safe(PODetails?.verifiedBy)} />
-          <KV label="Approved By" value={safe(PODetails?.approvedBy)} />
-          <KV label="Accepted By" value={safe(PODetails?.acceptedBy)} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Supplier */}
+        <Section
+          title="Buyer / Customer"
+          icon={<Building2 className="h-4 w-4" />}
+        >
+          <KV label="Name" value={safe(PODetails?.supplier?.name)} />
+          <KV label="Email" value={safe(PODetails?.supplier?.email)} />
+          <KV label="Phone" value={safe(PODetails?.supplier?.phone)} />
+          <KV label="GST No." value={safe(PODetails?.supplier?.gstNumber)} />
           <KV
-            label="Currency"
-            value={`${PODetails?.currency?.code || "INR"} ${
-              PODetails?.currency?.symbol || "₹"
-            }`}
+            label="Billing Address"
+            value={
+              [
+                PODetails?.supplier?.billingAddress?.address,
+                PODetails?.supplier?.billingAddress?.pinCode,
+                PODetails?.supplier?.billingAddress?.state,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
           />
-          <KV label="PO No." value={safe(PODetails?.poNo)} />
-        </div>
+          <KV
+            label="Shipping Address"
+            value={
+              [
+                PODetails?.supplier?.shippingAddress?.address,
+                PODetails?.supplier?.shippingAddress?.pinCode,
+                PODetails?.supplier?.shippingAddress?.state,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
+          />
+        </Section>
+
+        {/* Bill From */}
+        <Section title="Bill From" icon={<Wallet className="h-4 w-4" />}>
+          <KV
+            label="Origin"
+            value={
+              [
+                PODetails?.billFrom?.address,
+                PODetails?.billFrom?.pinCode,
+                PODetails?.billFrom?.state,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
+          />
+          <KV label="Destination" value={safe(PODetails?.destination)} />
+          <KV
+            label="Dispatch Through"
+            value={safe(PODetails?.dispatchTrough)}
+          />
+          <KV label="PO Type" value={safe(PODetails?.poType)} />
+        </Section>
+
+        {/* Banking / Links */}
+        <Section title="Bank " icon={<Globe2 className="h-4 w-4" />}>
+          <KV
+            label="Beneficiary"
+            value={safe(PODetails?.bank?.beneficiaryName)}
+          />
+          <KV label="Bank" value={safe(PODetails?.bank?.bank)} />
+          <KV label="Account" value={safe(PODetails?.bank?.bankAccount)} />
+          <KV label="IFSC" value={safe(PODetails?.bank?.ifscCode)} />
+          <KV label="SWIFT" value={safe(PODetails?.bank?.swiftCode)} />
+          <KV label="Bank Address" value={safe(PODetails?.bank?.bankAddress)} />
+        </Section>
       </div>
 
-      {/* Items */}
-      <div className="mt-6 rounded-xl border bg-white p-4 md:p-6">
+      <Separator />
+      <div className="w-full">
+        <h2 className="">Uploaded Files</h2>
+        {PODetails?.fileUrl?.length == 0 ? (
+          <p className="text-center text-muted-foreground">
+            No files uploaded yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-4">
+            {PODetails.fileUrl?.map((file, index) => {
+              return (
+                <Card
+                  key={index}
+                  className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
+                >
+                  <CardContent className="p-3 flex flex-col space-y-2">
+                    <div className="w-full h-25 bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden">
+                      <FileIcon className="w-12 h-12 text-gray-500" />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="flex items-center gap-2"
+                    >
+                      <a href={file} target="_blank" rel="noopener noreferrer">
+                        <Eye className="w-4 h-4" /> View
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="">
         <div className="flex items-center justify-between">
           <h4 className="text-base md:text-lg font-semibold text-gray-900">
             Items ({PODetails?.products?.length || 0})
@@ -502,8 +496,11 @@ const PoCustomerView = () => {
         </div>
       </div>
 
-      {/* Terms / Notes / Remarks */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className=" grid grid-cols-1 md:grid-cols-4 gap-4">
+        <RichBox
+          title="Payment Terms"
+          text={safe(PODetails?.paymentTerms, "No Terms")}
+        />
         <RichBox
           title="Remarks"
           text={safe(PODetails?.remarks, "No remarks")}
@@ -513,6 +510,16 @@ const PoCustomerView = () => {
           text={safe(PODetails?.terms, "—")}
         />
         <RichBox title="Notes" text={safe(PODetails?.notes, "—")} />
+      </div>
+
+      <Separator />
+      <div className="">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KV label="Prepared By" value={safe(PODetails?.preparedBy)} />
+          <KV label="Verified By" value={safe(PODetails?.verifiedBy)} />
+          <KV label="Approved By" value={safe(PODetails?.approvedBy)} />
+          <KV label="Accepted By" value={safe(PODetails?.acceptedBy)} />
+        </div>
       </div>
     </div>
   );

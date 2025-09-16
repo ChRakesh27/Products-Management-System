@@ -688,7 +688,6 @@ function SetPoCustomer() {
                           <div className="lg:col-span-1">
                             <Label>Total</Label>
                             <div className="px-3 py-2 border rounded-md text-right font-medium">
-                              {newPOForm.currency.symbol}{" "}
                               {currency(item.totalAmount)}
                             </div>
                           </div>
@@ -801,9 +800,10 @@ function SetPoCustomer() {
                     onChange={(e) =>
                       setNewPOForm((p) => ({
                         ...p,
-                        fileUrl: e.target.files[0],
+                        fileUrl: e.target.files,
                       }))
                     }
+                    multiple
                   />
                 </div>
                 <div className="space-y-2">
@@ -856,6 +856,7 @@ function SetPoCustomer() {
                 </div>
               </div>
             </section>
+
             <Separator />
             {/* Payment & text fields */}
             <div className="space-y-2">
