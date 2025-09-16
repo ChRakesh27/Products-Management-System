@@ -39,7 +39,7 @@ function Home() {
 
   useEffect(() => {
     if (location.pathname === "/") {
-      navigate("/po-given");
+      navigate("/products");
     }
   }, [location.pathname, navigate]);
 

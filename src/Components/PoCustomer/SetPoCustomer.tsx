@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { Copy, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import { productsAPI } from "../../Api/firebaseProducts";
@@ -8,6 +8,7 @@ import { vendorsAPI } from "../../Api/firebaseVendor";
 import currency from "../../Constants/Currency";
 import currencyList from "../../Constants/CurrencyList";
 import generateUUID from "../../Constants/generateUniqueId";
+import NumberToWords from "../../Constants/NumberToWords";
 import { sanitizeNumberInput } from "../../Constants/sanitizeNumberInput";
 import unitTypes from "../../Constants/unitTypes";
 import { useLoading } from "../../context/LoadingContext";
@@ -290,12 +291,6 @@ function SetPoCustomer() {
   }, [navigate, newPOForm, setLoading]);
 
   /* ------------ computed ------------ */
-
-  const totalDisplay = useMemo(
-    () =>
-      `${newPOForm.currency?.symbol || ""} ${currency(newPOForm.totalAmount)}`,
-    [newPOForm.totalAmount, newPOForm.currency?.symbol]
-  );
 
   /* ------------ UI ------------ */
 
@@ -688,7 +683,10 @@ function SetPoCustomer() {
                           <div className="lg:col-span-1">
                             <Label>Total</Label>
                             <div className="px-3 py-2 border rounded-md text-right font-medium">
-                              {currency(item.totalAmount)}
+                              {currency(
+                                item.totalAmount,
+                                newPOForm.currency.code
+                              )}
                             </div>
                           </div>
                         </div>
@@ -704,8 +702,14 @@ function SetPoCustomer() {
                   <span className="text-sm sm:text-base font-semibold text-gray-900">
                     Purchase Order Total
                   </span>
+                  <span className="text-lg sm:text-xl font-bold text-blue-700">
+                    {NumberToWords(
+                      parseInt(String(newPOForm.totalAmount)),
+                      newPOForm.currency.name
+                    )}
+                  </span>
                   <span className="text-xl sm:text-2xl font-bold text-blue-700">
-                    {totalDisplay}
+                    {currency(newPOForm.totalAmount, newPOForm.currency.code)}
                   </span>
                 </div>
               </div>

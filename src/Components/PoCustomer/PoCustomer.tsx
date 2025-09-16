@@ -54,6 +54,7 @@ function statusTone(status: string) {
     return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (
     s.includes("pending") ||
+    s.includes("partial") ||
     s.includes("process") ||
     s.includes("production")
   )

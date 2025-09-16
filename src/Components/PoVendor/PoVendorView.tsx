@@ -33,6 +33,8 @@ import {
   Truck,
   Wallet,
 } from "lucide-react";
+import currency from "../../Constants/Currency";
+import NumberToWords from "../../Constants/NumberToWords";
 import ToastMSG from "../ui/Toaster";
 
 /* ----------------------------- helpers ----------------------------- */
@@ -40,17 +42,15 @@ import ToastMSG from "../ui/Toaster";
 const safe = (v: any, fallback = "—") =>
   typeof v === "string" ? (v.trim() ? v : fallback) : v ?? fallback;
 
-const money = (val: unknown, symbol?: string) => {
-  const num = Number(val ?? 0);
-  const sym = symbol || "₹";
-  return `${sym}${num.toFixed(2)}`;
-};
-
 const statusTone = (status?: string) => {
   const s = String(status || "").toLowerCase();
   if (s.includes("completed") || s.includes("paid") || s.includes("approved"))
     return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (s.includes("pending") || s.includes("production"))
+  if (
+    s.includes("pending") ||
+    s.includes("partial") ||
+    s.includes("production")
+  )
     return "bg-amber-50 text-amber-700 border-amber-200";
   if (s.includes("cancel")) return "bg-rose-50 text-rose-700 border-rose-200";
   return "bg-slate-50 text-slate-700 border-slate-200";
@@ -70,7 +70,7 @@ const PoVendorView = () => {
   const [openIdx, setOpenIdx] = useState<number | null>(null); // mobile accordion
   const { setLoading } = useLoading();
 
-  const curSymbol = PODetails?.currency?.symbol || "₹";
+  const curSymbol = PODetails?.currency?.code || "INR";
 
   const updatePOStatus = async (
     newStatus: string,
@@ -132,9 +132,9 @@ const PoVendorView = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 w-full">
+    <div className="p-4 md:p-6 w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-xl md:text-2xl font-semibold text-gray-900">
             Purchase Order (Vendor) Details
@@ -184,9 +184,7 @@ const PoVendorView = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="In Production">In Production</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                <SelectItem value="Received">Received</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -203,6 +201,7 @@ const PoVendorView = () => {
               <SelectContent>
                 <SelectItem value="Paid">Paid</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Partial">Partial</SelectItem>
                 <SelectItem value="UnPaid">UnPaid</SelectItem>
               </SelectContent>
             </Select>
@@ -211,7 +210,7 @@ const PoVendorView = () => {
       </div>
 
       {/* Summary strip */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         <Stat
           label="PO Number"
           value={safe(PODetails?.poNo)}
@@ -231,113 +230,93 @@ const PoVendorView = () => {
         <Stat label="Materials" value={totals.count} accent="indigo" />
         <Stat
           label="PO Total"
-          value={money(PODetails?.totalAmount, curSymbol)}
+          value={currency(PODetails?.totalAmount, curSymbol)}
           accent="emerald"
         />
       </div>
 
       {/* Parties & meta */}
-      <div className="rounded-xl border bg-white p-4 md:p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Vendor / Supplier block (can be null in your sample) */}
-          <Section title="Supplier" icon={<Building2 className="h-4 w-4" />}>
-            <KV label="Name" value={safe(PODetails?.supplier?.name)} />
-            <KV label="Email" value={safe(PODetails?.supplier?.email)} />
-            <KV label="Phone" value={safe(PODetails?.supplier?.phone)} />
-            <KV label="GST No." value={safe(PODetails?.supplier?.gstNumber)} />
-            <KV
-              label="Billing Address"
-              value={
-                [
-                  PODetails?.supplier?.billingAddress?.address,
-                  PODetails?.supplier?.billingAddress?.pinCode,
-                  PODetails?.supplier?.billingAddress?.state,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "—"
-              }
-            />
-            <KV
-              label="Shipping Address"
-              value={
-                [
-                  PODetails?.supplier?.shippingAddress?.address,
-                  PODetails?.supplier?.shippingAddress?.pinCode,
-                  PODetails?.supplier?.shippingAddress?.state,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "—"
-              }
-            />
-          </Section>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Vendor / Supplier block (can be null in your sample) */}
+        <Section title="Supplier" icon={<Building2 className="h-4 w-4" />}>
+          <KV label="Name" value={safe(PODetails?.supplier?.name)} />
+          <KV label="Email" value={safe(PODetails?.supplier?.email)} />
+          <KV label="Phone" value={safe(PODetails?.supplier?.phone)} />
+          <KV label="GST No." value={safe(PODetails?.supplier?.gstNumber)} />
+          <KV
+            label="Billing Address"
+            value={
+              [
+                PODetails?.supplier?.billingAddress?.address,
+                PODetails?.supplier?.billingAddress?.pinCode,
+                PODetails?.supplier?.billingAddress?.state,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
+          />
+          <KV
+            label="Shipping Address"
+            value={
+              [
+                PODetails?.supplier?.shippingAddress?.address,
+                PODetails?.supplier?.shippingAddress?.pinCode,
+                PODetails?.supplier?.shippingAddress?.state,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
+          />
+        </Section>
 
-          {/* Routing / terms */}
-          <Section
-            title="Routing & Terms"
-            icon={<Globe2 className="h-4 w-4" />}
-          >
-            <KV label="Destination" value={safe(PODetails?.destination)} />
-            <KV
-              label="Dispatch Through"
-              value={safe(PODetails?.dispatchTrough)}
-            />
-            <KV label="PO Type" value={safe(PODetails?.poType)} />
-            <KV label="Payment Terms" value={safe(PODetails?.paymentTerms)} />
-            <KV
-              label="Currency"
-              value={`${PODetails?.currency?.code || "INR"} ${
-                PODetails?.currency?.symbol || "₹"
-              }`}
-            />
-          </Section>
+        {/* Routing / terms */}
+        <Section title="Routing & Terms" icon={<Globe2 className="h-4 w-4" />}>
+          <KV label="Destination" value={safe(PODetails?.destination)} />
+          <KV
+            label="Dispatch Through"
+            value={safe(PODetails?.dispatchTrough)}
+          />
+          <KV label="PO Type" value={safe(PODetails?.poType)} />
+          <KV label="Payment Terms" value={safe(PODetails?.paymentTerms)} />
+          <KV
+            label="Currency"
+            value={`${PODetails?.currency?.code || "INR"} ${
+              PODetails?.currency?.symbol || "₹"
+            }`}
+          />
+        </Section>
 
-          {/* Banking */}
-          <Section title="Bank Details" icon={<Wallet className="h-4 w-4" />}>
-            <KV
-              label="Beneficiary"
-              value={safe(PODetails?.bank?.beneficiaryName)}
-            />
-            <KV label="Bank" value={safe(PODetails?.bank?.bank)} />
-            <KV label="Account" value={safe(PODetails?.bank?.bankAccount)} />
-            <KV label="IFSC" value={safe(PODetails?.bank?.ifscCode)} />
-            <KV label="SWIFT" value={safe(PODetails?.bank?.swiftCode)} />
-            <KV
-              label="Bank Address"
-              value={safe(PODetails?.bank?.bankAddress)}
-            />
-            {/* If you later add fileUrl to POGiven, show it here */}
-            {PODetails?.fileUrl ? (
-              <div className="mt-2">
-                <Label className="text-xs text-muted-foreground">PO File</Label>
-                <a
-                  href={PODetails.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-sm text-blue-700 hover:underline mt-1"
-                >
-                  <LinkIcon className="inline h-4 w-4 mr-1" />
-                  View / Download
-                </a>
-              </div>
-            ) : null}
-          </Section>
-        </div>
-
-        <Separator />
-
-        {/* Prepared/Verified/etc */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <KV label="Prepared By" value={safe(PODetails?.preparedBy)} />
-          <KV label="Verified By" value={safe(PODetails?.verifiedBy)} />
-          <KV label="Approved By" value={safe(PODetails?.approvedBy)} />
-          <KV label="Accepted By" value={safe(PODetails?.acceptedBy)} />
-          <KV label="PO No." value={safe(PODetails?.poNo)} />
-          <KV label="PO Received Id" value={safe(PODetails?.poReceivedId)} />
-        </div>
+        {/* Banking */}
+        <Section title="Bank Details" icon={<Wallet className="h-4 w-4" />}>
+          <KV
+            label="Beneficiary"
+            value={safe(PODetails?.bank?.beneficiaryName)}
+          />
+          <KV label="Bank" value={safe(PODetails?.bank?.bank)} />
+          <KV label="Account" value={safe(PODetails?.bank?.bankAccount)} />
+          <KV label="IFSC" value={safe(PODetails?.bank?.ifscCode)} />
+          <KV label="SWIFT" value={safe(PODetails?.bank?.swiftCode)} />
+          <KV label="Bank Address" value={safe(PODetails?.bank?.bankAddress)} />
+          {/* If you later add fileUrl to POGiven, show it here */}
+          {PODetails?.fileUrl ? (
+            <div className="mt-2">
+              <Label className="text-xs text-muted-foreground">PO File</Label>
+              <a
+                href={PODetails.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-blue-700 hover:underline mt-1"
+              >
+                <LinkIcon className="inline h-4 w-4 mr-1" />
+                View / Download
+              </a>
+            </div>
+          ) : null}
+        </Section>
       </div>
 
       {/* Items */}
-      <div className="mt-6 rounded-xl border bg-white p-4 md:p-6">
+      <div className="">
         <div className="flex items-center justify-between">
           <h4 className="text-base md:text-lg font-semibold text-gray-900">
             Materials ({PODetails?.products?.length || 0})
@@ -379,13 +358,13 @@ const PoVendorView = () => {
                     <TableCell>{Number(item?.gst ?? 0)}%</TableCell>
                     <TableCell>{Number(item?.quantity ?? 0)}</TableCell>
                     <TableCell className="text-right">
-                      {money(Number(item?.estimatePrice ?? 0), curSymbol)}
+                      {currency(Number(item?.estimatePrice ?? 0), curSymbol)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {money(Number(item?.actualPrice ?? 0), curSymbol)}
+                      {currency(Number(item?.actualPrice ?? 0), curSymbol)}
                     </TableCell>
                     <TableCell className="text-right font-semibold text-gray-900">
-                      {money(total, curSymbol)}
+                      {currency(total, curSymbol)}
                     </TableCell>
                   </TableRow>
                 );
@@ -412,7 +391,7 @@ const PoVendorView = () => {
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {Number(item?.quantity ?? 0)} ×{" "}
-                      {money(Number(item?.actualPrice ?? 0), curSymbol)}
+                      {currency(Number(item?.actualPrice ?? 0), curSymbol)}
                     </div>
                   </div>
                   {isOpen ? (
@@ -435,16 +414,19 @@ const PoVendorView = () => {
                       <KV label="Qty" value={Number(item?.quantity ?? 0)} />
                       <KV
                         label="Est. Price"
-                        value={money(
+                        value={currency(
                           Number(item?.estimatePrice ?? 0),
                           curSymbol
                         )}
                       />
                       <KV
                         label="Actual Price"
-                        value={money(Number(item?.actualPrice ?? 0), curSymbol)}
+                        value={currency(
+                          Number(item?.actualPrice ?? 0),
+                          curSymbol
+                        )}
                       />
-                      <KV label="Total" value={money(total, curSymbol)} />
+                      <KV label="Total" value={currency(total, curSymbol)} />
                     </div>
                   </div>
                 )}
@@ -458,14 +440,20 @@ const PoVendorView = () => {
           <div className="text-sm font-medium text-gray-700">
             Purchase Order Total
           </div>
+          <div className="text-lg sm:text-xl font-bold text-blue-700">
+            {NumberToWords(
+              parseInt(String(PODetails.totalAmount)),
+              PODetails.currency.name
+            )}
+          </div>
           <div className="text-lg font-bold text-blue-700">
-            {money(PODetails?.totalAmount, curSymbol)}
+            {currency(PODetails?.totalAmount, curSymbol)}
           </div>
         </div>
       </div>
 
       {/* Terms / Notes / Remarks */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className=" grid grid-cols-1 md:grid-cols-3 gap-4">
         <RichBox
           title="Remarks"
           text={safe(PODetails?.remarks, "No remarks")}
@@ -475,6 +463,15 @@ const PoVendorView = () => {
           text={safe(PODetails?.terms, "—")}
         />
         <RichBox title="Notes" text={safe(PODetails?.notes, "—")} />
+      </div>
+      <Separator />
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <KV label="Prepared By" value={safe(PODetails?.preparedBy)} />
+        <KV label="Verified By" value={safe(PODetails?.verifiedBy)} />
+        <KV label="Approved By" value={safe(PODetails?.approvedBy)} />
+        <KV label="Accepted By" value={safe(PODetails?.acceptedBy)} />
+        <KV label="PO No." value={safe(PODetails?.poNo)} />
+        <KV label="PO Received Id" value={safe(PODetails?.poReceivedId)} />
       </div>
     </div>
   );

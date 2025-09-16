@@ -14,7 +14,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import dummyLogo from "../../assets/dummyLogo2.png";
+import SunyaLogo from "../../assets/SunyaLogo.png";
 import convertFileToBase64 from "../../Constants/convertFileToBase64";
 import {
   FetchCompanyDetails,
@@ -364,7 +364,13 @@ const CompanyForm = ({ userRef }) => {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-50 w-full">
       <div className="text-center -mt-20 py-5">
-        <img src={dummyLogo} alt="Logo" className="h-16 mx-auto mb-4" />
+        <img
+          src={SunyaLogo}
+          width={300}
+          alt="logo"
+          height={200}
+          className="mix-blend-multiply"
+        />
       </div>
       <div className="w-full max-w-lg mx-auto p-6 rounded-2xl bg-white border border-gray-200 shadow-sm">
         <div className="mb-6 text-center">

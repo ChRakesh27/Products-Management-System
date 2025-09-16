@@ -12,7 +12,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+import currency from "../../Constants/Currency";
 import DateFormate from "../../Constants/DateFormate";
+import NumberToWords from "../../Constants/NumberToWords";
 import { useLoading } from "../../context/LoadingContext";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -41,12 +43,6 @@ import ToastMSG from "../ui/Toaster";
 const safe = (v: any, fallback = "—") =>
   typeof v === "string" ? (v.trim() ? v : fallback) : v ?? fallback;
 
-const money = (val: unknown, symbol?: string) => {
-  const num = Number(val ?? 0);
-  const sym = symbol || "₹";
-  return `${sym}${num.toFixed(2)}`;
-};
-
 const statusTone = (status?: string) => {
   const s = String(status || "").toLowerCase();
   if (s.includes("completed") || s.includes("paid") || s.includes("approved"))
@@ -71,8 +67,6 @@ const PoCustomerView = () => {
   const [openIdx, setOpenIdx] = useState<number | null>(null); // mobile accordion
   const { setLoading } = useLoading();
 
-  const curSymbol = PODetails?.currency?.symbol || "₹";
-
   const updatePOStatus = async (
     newStatus: string,
     field: "status" | "paymentStatus"
@@ -92,7 +86,6 @@ const PoCustomerView = () => {
       setLoading(true);
       try {
         const data = await poReceivedAPI.get(id!);
-        console.log("🚀 ~ fetchPOData ~ data:", data);
         setPODetails(data);
       } catch (error) {
         console.error("fetchPOData error:", error);
@@ -134,11 +127,11 @@ const PoCustomerView = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 w-full space-y-6">
+    <div className="p-4 md:p-6 w-full space-y-6 pb-12">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-xl md:text-2xl font-semibold text-gray-900">
-            Purchase Order Details
+            Purchase Order (Customer) Details
           </h3>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge
@@ -204,6 +197,7 @@ const PoCustomerView = () => {
               <SelectContent>
                 <SelectItem value="Paid">Paid</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Partial">Partial</SelectItem>
                 <SelectItem value="UnPaid">UnPaid</SelectItem>
               </SelectContent>
             </Select>
@@ -234,7 +228,7 @@ const PoCustomerView = () => {
         <Stat label="Total Qty" value={totals.qty} accent="sky" />
         <Stat
           label="PO Total"
-          value={money(PODetails?.totalAmount, curSymbol)}
+          value={currency(PODetails?.totalAmount, PODetails?.currency?.code)}
           accent="emerald"
         />
       </div>
@@ -276,7 +270,7 @@ const PoCustomerView = () => {
         </Section>
 
         {/* Bill From */}
-        <Section title="Bill From" icon={<Wallet className="h-4 w-4" />}>
+        <Section title="Bill Details" icon={<Wallet className="h-4 w-4" />}>
           <KV
             label="Origin"
             value={
@@ -295,6 +289,7 @@ const PoCustomerView = () => {
             value={safe(PODetails?.dispatchTrough)}
           />
           <KV label="PO Type" value={safe(PODetails?.poType)} />
+          <KV label="Payment Terms" value={safe(PODetails?.paymentTerms)} />
         </Section>
 
         {/* Banking / Links */}
@@ -312,8 +307,10 @@ const PoCustomerView = () => {
       </div>
 
       <Separator />
-      <div className="w-full">
-        <h2 className="">Uploaded Files</h2>
+      <div className="w-full space-y-2">
+        <h4 className="text-base md:text-lg font-semibold text-gray-900">
+          Uploaded Files
+        </h4>
         {PODetails?.fileUrl?.length == 0 ? (
           <p className="text-center text-muted-foreground">
             No files uploaded yet.
@@ -347,7 +344,7 @@ const PoCustomerView = () => {
           </div>
         )}
       </div>
-
+      <Separator />
       <div className="">
         <div className="flex items-center justify-between">
           <h4 className="text-base md:text-lg font-semibold text-gray-900">
@@ -362,10 +359,10 @@ const PoCustomerView = () => {
               <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableHead className="w-[28%]">Product</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead>Unit</TableHead>
+                <TableHead>Unit Type</TableHead>
+                <TableHead className="text-right">Unit Price</TableHead>
                 <TableHead>GST %</TableHead>
                 <TableHead>Qty</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -397,13 +394,16 @@ const PoCustomerView = () => {
                     </TableCell>
                     <TableCell>{safe(item?.color)}</TableCell>
                     <TableCell>{safe(item?.unitType)}</TableCell>
+                    <TableCell className="text-right">
+                      {currency(
+                        Number(item?.unitPrice ?? 0),
+                        PODetails?.currency?.code
+                      )}
+                    </TableCell>
                     <TableCell>{Number(item?.gst ?? 0)}%</TableCell>
                     <TableCell>{Number(item?.quantityOrdered ?? 0)}</TableCell>
-                    <TableCell className="text-right">
-                      {money(Number(item?.unitPrice ?? 0), curSymbol)}
-                    </TableCell>
                     <TableCell className="text-right font-semibold text-gray-900">
-                      {money(total, curSymbol)}
+                      {currency(total, PODetails?.currency?.code)}
                     </TableCell>
                   </TableRow>
                 );
@@ -430,7 +430,10 @@ const PoCustomerView = () => {
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {Number(item?.quantityOrdered ?? 0)} ×{" "}
-                      {money(Number(item?.unitPrice ?? 0), curSymbol)}
+                      {currency(
+                        Number(item?.unitPrice ?? 0),
+                        PODetails?.currency?.code
+                      )}
                     </div>
                   </div>
                   {isOpen ? (
@@ -455,9 +458,15 @@ const PoCustomerView = () => {
                       />
                       <KV
                         label="Unit Price"
-                        value={money(Number(item?.unitPrice ?? 0), curSymbol)}
+                        value={currency(
+                          Number(item?.unitPrice ?? 0),
+                          PODetails?.currency?.code
+                        )}
                       />
-                      <KV label="Total" value={money(total, curSymbol)} />
+                      <KV
+                        label="Total"
+                        value={currency(total, PODetails?.currency?.code)}
+                      />
                     </div>
                     {Array.isArray(item?.sizeQty) &&
                       item.sizeQty.length > 0 && (
@@ -489,17 +498,19 @@ const PoCustomerView = () => {
           <div className="text-sm font-medium text-gray-700">
             Purchase Order Total
           </div>
+          <div className="text-lg sm:text-xl font-bold text-blue-700">
+            {NumberToWords(
+              parseInt(String(PODetails.totalAmount)),
+              PODetails.currency.name
+            )}
+          </div>
           <div className="text-lg font-bold text-blue-700">
-            {money(PODetails?.totalAmount, curSymbol)}
+            {currency(PODetails?.totalAmount, PODetails?.currency?.code)}
           </div>
         </div>
       </div>
 
       <div className=" grid grid-cols-1 md:grid-cols-4 gap-4">
-        <RichBox
-          title="Payment Terms"
-          text={safe(PODetails?.paymentTerms, "No Terms")}
-        />
         <RichBox
           title="Remarks"
           text={safe(PODetails?.remarks, "No remarks")}

@@ -1,9 +1,7 @@
 import {
   BarChart3,
   Calendar,
-  CheckCircle,
   CheckCircle2,
-  Circle,
   Clock,
   FileText,
   Filter,
@@ -12,10 +10,8 @@ import {
   Plus,
   Scissors,
   Search,
-  Settings,
   ShoppingCart,
   Truck,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -46,8 +42,6 @@ import {
 /* --------------------------- helpers --------------------------- */
 
 const lc = (v: unknown) => String(v ?? "").toLowerCase();
-const curSym = (po: any) => po?.currency?.symbol || "₹";
-const curCode = (po: any) => po?.currency?.code || "INR";
 const pretty = (s?: string) =>
   String(s ?? "")
     .replace(/-/g, " ")
@@ -57,7 +51,11 @@ const statusBadgeClass = (status?: string) => {
   const s = lc(status);
   if (s.includes("paid") || s.includes("completed") || s.includes("approved"))
     return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (s.includes("pending") || s.includes("production"))
+  if (
+    s.includes("pending") ||
+    s.includes("partial") ||
+    s.includes("production")
+  )
     return "bg-amber-50 text-amber-700 border-amber-200";
   if (
     s.includes("overdue") ||
@@ -68,28 +66,6 @@ const statusBadgeClass = (status?: string) => {
     return "bg-rose-50 text-rose-700 border-rose-200";
   return "bg-slate-50 text-slate-700 border-slate-200";
 };
-
-const getStatusIcon = (status?: string) => {
-  switch ((status || "").toLowerCase()) {
-    case "pending":
-      return <Clock className="w-4 h-4 text-yellow-600" />;
-    case "in production":
-      return <Settings className="w-4 h-4 text-blue-600" />;
-    case "completed":
-      return <CheckCircle className="w-4 h-4 text-green-600" />;
-    case "cancelled":
-      return <X className="w-4 h-4 text-red-600" />;
-    default:
-      return <Circle className="w-4 h-4 text-gray-400" />;
-  }
-};
-
-const money = (val: unknown, symbol = "₹") => {
-  const n = Number(val ?? 0);
-  return `${symbol} ${n.toFixed(2)}`;
-};
-
-/* ----------------------------- view ---------------------------- */
 
 const PoVendor = () => {
   const { setLoading } = useLoading();
@@ -158,8 +134,6 @@ const PoVendor = () => {
   }, [purchaseOrders]);
 
   const POCard = ({ po }: { po: any }) => {
-    const sym = curSym(po);
-    const code = curCode(po);
     return (
       <div
         className="bg-white p-5 rounded-lg cursor-pointer shadow-sm border border-gray-200 hover:shadow-lg transition-shadow"
@@ -173,7 +147,9 @@ const PoVendor = () => {
             <div className="mt-1 text-sm text-gray-600">
               {po?.supplier?.name || "—"}
               {po?.currency?.code ? (
-                <span className="ml-2 text-xs text-gray-500">· {code}</span>
+                <span className="ml-2 text-xs text-gray-500">
+                  · {po?.currency?.code}
+                </span>
               ) : null}
             </div>
           </div>
@@ -201,13 +177,12 @@ const PoVendor = () => {
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            {getStatusIcon(po?.paymentStatus)}
             <span className="text-xs text-gray-600">
               {po?.dispatchTrough ? `Dispatch: ${po.dispatchTrough}` : "—"}
             </span>
           </div>
           <div className="text-lg font-semibold text-gray-900">
-            {money(po?.totalAmount, sym)}
+            {currency(po?.totalAmount, po?.currency?.code)}
           </div>
         </div>
 
@@ -303,7 +278,7 @@ const PoVendor = () => {
             <StatCard
               icon={<IndianRupee className="h-5 w-5" />}
               label="Total Value"
-              value={money(totalValue)}
+              value={currency(totalValue)}
               tone="emerald"
             />
             <StatCard

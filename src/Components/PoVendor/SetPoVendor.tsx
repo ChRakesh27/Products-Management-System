@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { poGivenAPI } from "../../Api/firebasePOsGiven";
@@ -21,6 +21,7 @@ import type { PartnerModel } from "../../Model/VendorModel";
 import { useLoading } from "../../context/LoadingContext";
 
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
+import NumberToWords from "../../Constants/NumberToWords";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DatePicker } from "../ui/DatePicker";
@@ -237,12 +238,6 @@ export default function SetPoVendor() {
       setLoading(false);
     }
   };
-
-  /* ------------ computed ------------ */
-  const totalPretty = useMemo(
-    () => currency(form.totalAmount),
-    [form.totalAmount]
-  );
 
   /* ------------ UI ------------ */
   return (
@@ -565,7 +560,7 @@ export default function SetPoVendor() {
                         <div className="lg:col-span-1">
                           <Label>Total Value</Label>
                           <div className="px-3 py-2 border rounded-md text-right font-medium">
-                            {currency(row.total)}
+                            {currency(row.total, form.currency.code)}
                           </div>
                         </div>
                       </div>
@@ -580,8 +575,14 @@ export default function SetPoVendor() {
                   <span className="text-sm sm:text-base font-semibold text-gray-900">
                     Purchase Order Total
                   </span>
+                  <span className="text-lg sm:text-xl font-bold text-blue-700">
+                    {NumberToWords(
+                      parseInt(String(form.totalAmount)),
+                      form.currency.name
+                    )}
+                  </span>
                   <span className="text-xl sm:text-2xl font-bold text-blue-700">
-                    {totalPretty}
+                    {currency(form.totalAmount, form.currency.code)}
                   </span>
                 </div>
               </div>
