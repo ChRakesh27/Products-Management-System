@@ -251,7 +251,6 @@ export default function ProductForm() {
       {/* SINGLE CARD ONLY */}
       <div className=" p-4 sm:p-6 space-y-4">
         <Card className="overflow-hidden rounded-2xl border shadow-sm">
-          {/* Header in the same card */}
           <CardHeader className="py-4 border-b bg-gradient-to-r from-indigo-50 via-sky-50 to-white">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>

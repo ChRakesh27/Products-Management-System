@@ -24,6 +24,7 @@ import {
   Cog,
   FileText,
   IndianRupee,
+  Layers,
   Package,
   PackageSearch,
   Palette,
@@ -139,9 +140,9 @@ export default function ProductList() {
           <div className="space-y-2">
             <div className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-3">
               <div className="p-2.5 bg-slate-900 rounded-lg">
-                <PackageSearch className="h-6 w-6 text-white" />
+                <Layers className="h-6 w-6 text-white" />
               </div>
-              Product Management
+              Styles / Products Management
             </div>
           </div>
 

@@ -50,7 +50,6 @@ function Home() {
         <main className="w-full">
           <Navbar />
           <div className="full-body-container w-full">
-            {/* 🔹 Suspense wraps all lazy-loaded routes */}
             <Suspense fallback={<div className="p-4">Loading...</div>}>
               <Routes>
                 <Route path="/UserProfile" element={<UserProfile />} />
@@ -68,13 +67,13 @@ function Home() {
                 <Route path="/products/:id" element={<ProductView />} />
                 <Route path="/products/:id/edit" element={<ProductForm />} />
 
-                <Route path="/po-received" element={<PoCustomer />} />
-                <Route path="/po-received/create" element={<SetPoCustomer />} />
-                <Route path="/po-received/:id" element={<PoCustomerView />} />
+                <Route path="/po-customer" element={<PoCustomer />} />
+                <Route path="/po-customer/create" element={<SetPoCustomer />} />
+                <Route path="/po-customer/:id" element={<PoCustomerView />} />
 
-                <Route path="/po-given" element={<PoVendor />} />
-                <Route path="/po-given/create" element={<SetPoVendor />} />
-                <Route path="/po-given/:id" element={<PoVendorView />} />
+                <Route path="/po-vendor" element={<PoVendor />} />
+                <Route path="/po-vendor/create" element={<SetPoVendor />} />
+                <Route path="/po-vendor/:id" element={<PoVendorView />} />
 
                 <Route path="/manufactures" element={<ManufactureHome />} />
                 <Route

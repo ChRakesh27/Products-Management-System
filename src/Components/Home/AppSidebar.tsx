@@ -60,7 +60,7 @@ const NAV = [
     label: "Operations",
     items: [
       {
-        title: "Style / Products",
+        title: "Styles / Products",
         url: "/products",
         icon: Layers,
         isComingSoon: false,
@@ -79,13 +79,13 @@ const NAV = [
       },
       {
         title: "Production ",
-        url: "/",
+        url: "#",
         icon: ClipboardList,
         isComingSoon: true,
       },
       {
         title: "Inventory",
-        url: "/",
+        url: "#",
         icon: PackageCheck,
         isComingSoon: true,
       },
@@ -94,10 +94,9 @@ const NAV = [
   {
     label: "Procurement",
     items: [
-      { title: "POs Customers", url: "/po-received", icon: Inbox },
-      { title: "POs Vendors", url: "/po-given", icon: ShoppingCart },
+      { title: "POs Customers", url: "/po-customer", icon: Inbox },
+      { title: "POs Vendors", url: "/po-vendor", icon: ShoppingCart },
       { title: "Business Partners", url: "/partners", icon: User },
-      { title: "Dashboard", url: "/", icon: Home },
     ],
   },
   {

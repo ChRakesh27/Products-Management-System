@@ -16,7 +16,25 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Separator } from "../ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { Textarea } from "../ui/textarea";
 
 type DailyEntry = {
   target: number;
@@ -168,50 +186,53 @@ export default function ProductionData({ poData }) {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Product selector */}
         {products.length > 0 && (
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">Product</label>
+            <Label>Products : </Label>
             <div className="flex gap-2">
               {products.map((p) => (
-                <button
+                <Button
                   key={p.id}
                   onClick={() => {
                     setSelectedProduct(p);
                   }}
+                  size="sm"
                   className={
-                    "px-3 py-1 rounded border text-sm " +
+                    "rounded-md border text-sm py-1 " +
                     (selectedProduct?.id === p.id
                       ? "bg-black text-white"
                       : "bg-white text-black hover:bg-black/5")
                   }
                 >
                   {p.name}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Month</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
+          <Label>Month</Label>
+          <Select
+            value={month.toString()}
+            onValueChange={(val) => setMonth(Number(val))}
           >
-            {Array.from({ length: 12 }).map((_, i) => (
-              <option key={i} value={i}>
-                {new Date(2025, i, 1).toLocaleString("en-US", {
-                  month: "short",
-                })}
-              </option>
-            ))}
-          </select>
-          <input
-            className="border rounded px-2 py-1 w-24"
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }).map((_, i) => (
+                <SelectItem key={i} value={i.toString()}>
+                  {new Date(2025, i, 1).toLocaleString("en-US", {
+                    month: "short",
+                  })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            className=" w-24"
             type="number"
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
@@ -235,34 +256,35 @@ export default function ProductionData({ poData }) {
       />
       {/* Grid */}
       <div className="overflow-auto border border-gray-200 rounded">
-        <table className="min-w-full text-xs">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-2 py-1 w-28 text-left">Date</th>
-              <th className="border px-2 py-1 text-center">Target</th>
-              <th className="border px-2 py-1 text-center">Output</th>
-              <th className="border px-2 py-1 text-center">Remark</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-28 text-left ">Date</TableHead>
+              <TableHead className="text-center border-x">Target</TableHead>
+              <TableHead className="text-center border-x">Output</TableHead>
+              <TableHead className="text-center ">Remark</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {days.map((d) => {
               const key = d.toISOString().slice(0, 10);
               const entry = dayMap[key];
               const remarkPreview = entry?.remark ? entry.remark.trim() : "";
+
               return (
-                <tr
+                <TableRow
                   key={key}
                   className="hover:bg-gray-100 cursor-pointer relative"
                   onClick={() => openDrawerFor(d)}
                 >
-                  <td className="border px-2 py-1">{fmt(d)}</td>
-                  <td className="border px-2 py-1 text-center">
+                  <TableCell>{fmt(d)}</TableCell>
+                  <TableCell className="text-center border-x">
                     {entry ? entry.target : ""}
-                  </td>
-                  <td className="border px-2 py-1 text-center">
+                  </TableCell>
+                  <TableCell className="text-center border-x">
                     {entry ? entry.output : ""}
-                  </td>
-                  <td className="border px-2 py-1 text-left group">
+                  </TableCell>
+                  <TableCell className="text-left group relative">
                     <span className="truncate block max-w-[260px]">
                       {remarkPreview ? remarkPreview : ""}
                     </span>
@@ -271,12 +293,12 @@ export default function ProductionData({ poData }) {
                         {remarkPreview}
                       </div>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* SIDE DRAWER */}
@@ -296,47 +318,39 @@ export default function ProductionData({ poData }) {
         </div>
 
         <div className="p-4 space-y-4 overflow-y-auto h-[calc(100%-56px)]">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] text-gray-600 mb-1">
-                Target
-              </label>
-              <input
-                type="number"
-                className="w-full border rounded px-2 py-1"
-                value={drawerData.target}
-                onChange={(e) =>
-                  setDrawerData((prev) => ({
-                    ...prev,
-                    target: Number(e.target.value || 0),
-                  }))
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] text-gray-600 mb-1">
-                Output
-              </label>
-              <input
-                type="number"
-                className="w-full border rounded px-2 py-1"
-                value={drawerData.output}
-                onChange={(e) =>
-                  setDrawerData((prev) => ({
-                    ...prev,
-                    output: Number(e.target.value || 0),
-                  }))
-                }
-              />
-            </div>
+          <div>
+            <Label>Target</Label>
+            <Input
+              type="number"
+              className="w-full border rounded px-2 py-1"
+              value={drawerData.target}
+              onChange={(e) =>
+                setDrawerData((prev) => ({
+                  ...prev,
+                  target: Number(e.target.value || 0),
+                }))
+              }
+            />
           </div>
 
           <div>
-            <label className="block text-[11px] text-gray-600 mb-1">
-              Remark
-            </label>
-            <textarea
+            <Label>Output</Label>
+            <Input
+              type="number"
+              className="w-full border rounded px-2 py-1"
+              value={drawerData.output}
+              onChange={(e) =>
+                setDrawerData((prev) => ({
+                  ...prev,
+                  output: Number(e.target.value || 0),
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Remark</Label>
+            <Textarea
               className="w-full border rounded px-2 py-2"
               rows={4}
               placeholder="Any issues, delays, notes…"

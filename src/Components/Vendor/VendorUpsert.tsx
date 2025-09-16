@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -193,19 +193,6 @@ export function VendorUpsert() {
 
   return (
     <div className="w-full">
-      {/* Top bar */}
-      <div className="sticky top-0 z-10  sm:mx-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between py-3">
-          <Button variant="ghost" onClick={() => nav(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div className="text-sm text-muted-foreground px-2">
-            {isEdit ? "Edit Partner" : "Create Partner"}
-          </div>
-        </div>
-        <Separator />
-      </div>
       <div className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
         {/* Partner Info */}
         <Section

@@ -10,7 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { poReceivedAPI } from "../../Api/firebasePOsReceived";
 import DateFormate from "../../Constants/DateFormate";
 import { useLoading } from "../../context/LoadingContext";
@@ -70,7 +70,6 @@ const PoCustomerView = () => {
   const [PODetails, setPODetails] = useState<any>(null);
   const [openIdx, setOpenIdx] = useState<number | null>(null); // mobile accordion
   const { setLoading } = useLoading();
-  const navigate = useNavigate();
 
   const curSymbol = PODetails?.currency?.symbol || "₹";
 

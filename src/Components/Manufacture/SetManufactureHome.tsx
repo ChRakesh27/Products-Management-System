@@ -124,80 +124,89 @@ export default function SetManufactureHome() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto grid gap-6 py-6">
-      <Card className="py-6">
-        <CardHeader>
-          <CardTitle>
-            {isEdit ? "Edit Work Order" : "Create Work Order"}
-          </CardTitle>
-        </CardHeader>
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className=" p-4 sm:p-6 space-y-4">
+        <Card className="overflow-hidden rounded-2xl border shadow-sm">
+          <CardHeader className="py-4 border-b bg-gradient-to-r from-indigo-50 via-sky-50 to-white">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-xl font-semibold">
+                  {isEdit ? "Edit Work Order" : "Create Work Order"}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Build the Work Order and Daily Production details.
+                </p>
+              </div>
+            </div>
+          </CardHeader>
 
-        <CardContent className="grid gap-6">
-          {/* Select PO */}
-          <div className="grid gap-2">
-            <Label>Select PO *</Label>
-            <Select
-              value={manufacture.poId || ""}
-              onValueChange={(v) => {
-                onSelectPo(v);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select PO" />
-              </SelectTrigger>
-              <SelectContent>
-                {poList.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.poNo || p.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <CardContent className="p-5 space-y-6">
+            <div className="">
+              <Label>Select PO *</Label>
+              <Select
+                value={manufacture.poId || ""}
+                onValueChange={(v) => {
+                  onSelectPo(v);
+                }}
+                disabled={isEdit}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select PO" />
+                </SelectTrigger>
+                <SelectContent>
+                  {poList.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.poNo || p.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Dates */}
-          <div className="grid md:grid-cols-2 gap-4">
+            {/* Dates */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Start Date *</Label>
+                <DatePicker
+                  date={manufacture.startDate as any}
+                  setDate={(d) => setField("startDate", d ?? null)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>End Date</Label>
+                <DatePicker
+                  date={manufacture.endDate as any}
+                  setDate={(d) => setField("endDate", d ?? null)}
+                />
+              </div>
+            </div>
+
+            {/* Remarks */}
             <div className="grid gap-2">
-              <Label>Start Date *</Label>
-              <DatePicker
-                date={manufacture.startDate as any}
-                setDate={(d) => setField("startDate", d ?? null)}
+              <Label>Remarks</Label>
+              <Textarea
+                value={manufacture.remarks || ""}
+                onChange={(e) => setField("remarks", e.target.value)}
+                placeholder="Notes / remarks…"
               />
             </div>
-            <div className="grid gap-2">
-              <Label>End Date</Label>
-              <DatePicker
-                date={manufacture.endDate as any}
-                setDate={(d) => setField("endDate", d ?? null)}
-              />
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => navigate("/manufactures")}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!canSubmit || saving}>
+                {saving ? "Saving…" : isEdit ? "Update" : "Create"}
+              </Button>
             </div>
-          </div>
-
-          {/* Remarks */}
-          <div className="grid gap-2">
-            <Label>Remarks</Label>
-            <Textarea
-              value={manufacture.remarks || ""}
-              onChange={(e) => setField("remarks", e.target.value)}
-              placeholder="Notes / remarks…"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate("/manufactures")}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!canSubmit || saving}>
-              {saving ? "Saving…" : isEdit ? "Update" : "Create"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </form>
   );
 }

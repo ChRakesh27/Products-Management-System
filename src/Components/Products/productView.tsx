@@ -39,6 +39,7 @@ import {
   Tag,
   Truck,
 } from "lucide-react";
+import { useLoading } from "../../context/LoadingContext";
 import {
   Select,
   SelectContent,
@@ -131,11 +132,18 @@ export default function ProductView() {
   const navigate = useNavigate();
   const [product, setProduct] = useState<ProductModel | null>(null);
   const [received, setReceived] = useState<ProductPoReceivedModel[]>([]);
-
+  const { setLoading } = useLoading();
   useEffect(() => {
     if (!id) return;
-    productsAPI.get(id).then(setProduct);
-    productsAPI.getLogs(id).then(setReceived);
+    try {
+      setLoading(true);
+      productsAPI.get(id).then(setProduct);
+      productsAPI.getLogs(id).then(setReceived);
+    } catch (error) {
+      console.log("🚀 ~ ProductView ~ error:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   const rmCount = product?.rawMaterials?.length ?? 0;
