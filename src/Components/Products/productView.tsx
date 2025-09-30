@@ -443,7 +443,7 @@ export default function ProductView() {
                     <Button
                       variant="link"
                       className="px-0 text-amber-700"
-                      onClick={() => navigate(`/po-received/${row.refId}`)}
+                      onClick={() => navigate(`/po-customer/${row.refId}`)}
                     >
                       {row.poNo || "Open PO"}
                     </Button>

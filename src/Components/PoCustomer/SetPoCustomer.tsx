@@ -281,7 +281,7 @@ function SetPoCustomer() {
       setLoading(true);
       const ref = await poReceivedAPI.create(newPOForm);
       ToastMSG("success", "Successfully created the PO");
-      navigate("/po-received/" + ref.id);
+      navigate("/po-customer/" + ref.id);
     } catch (error) {
       console.error("addNewPO error:", error);
       ToastMSG("error", "Something went wrong");
@@ -906,7 +906,7 @@ function SetPoCustomer() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/po-received")}
+            onClick={() => navigate("/po-customer")}
           >
             Cancel
           </Button>

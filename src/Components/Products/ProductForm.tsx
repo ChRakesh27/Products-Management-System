@@ -230,11 +230,11 @@ export default function ProductForm() {
         await productsAPI.update(id, form);
         ToastMSG("success", "Product updated");
       } else {
-        await productsAPI.create(form);
+        const fresh: any = await productsAPI.create(form);
         // logType("CREATE", "product.create", { from: "product", ref: fresh.id, message: "Created new Product", data: fresh });
         ToastMSG("success", "Product created");
+        navigate("/products/", fresh.id);
       }
-      navigate("/products");
     } catch (err) {
       console.error(err);
       ToastMSG("error", "Save failed");

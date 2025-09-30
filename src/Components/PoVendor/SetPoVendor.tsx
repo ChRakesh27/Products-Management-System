@@ -230,7 +230,7 @@ export default function SetPoVendor() {
       setLoading(true);
       const ref = await poGivenAPI.create(form);
       ToastMSG("success", "PO Given saved");
-      navigate(`/po-given/${ref.id}`);
+      navigate(`/po-vendor/${ref.id}`);
     } catch (e) {
       console.error(e);
       ToastMSG("error", "Save failed");
@@ -753,7 +753,7 @@ export default function SetPoVendor() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/po-received")}
+            onClick={() => navigate("/po-customer")}
           >
             Cancel
           </Button>

@@ -220,7 +220,7 @@ export default function RawMaterialView() {
                     <Button
                       variant="link"
                       className="px-0 text-emerald-700"
-                      onClick={() => navigate(`/po-received/${row.refId}`)}
+                      onClick={() => navigate(`/po-customer/${row.refId}`)}
                     >
                       {row.poNo || "Open PO"}
                     </Button>
@@ -270,7 +270,7 @@ export default function RawMaterialView() {
                     <Button
                       variant="link"
                       className="px-0 text-amber-700"
-                      onClick={() => navigate(`/po-given/${row.refId}`)}
+                      onClick={() => navigate(`/po-vendor/${row.refId}`)}
                     >
                       {row.poNo || "Open PO"}
                     </Button>

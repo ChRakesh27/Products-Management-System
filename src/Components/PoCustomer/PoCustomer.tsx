@@ -606,7 +606,7 @@ function EmptyState({
       {!searchTerm && (
         <Button onClick={onCreate}>
           <Plus className="w-4 h-4 mr-2" />
-          New PO Entry
+          New PO Customer
         </Button>
       )}
     </div>

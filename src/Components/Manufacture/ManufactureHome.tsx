@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { manufacturesAPI } from "../../Api/firebaseManufacture";
+import DateFormate from "../../Constants/DateFormate";
 import type { ManufactureModel } from "../../Model/DailyProductionModel";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -112,6 +113,7 @@ export default function ManufactureHome() {
     try {
       setLoading(true);
       const list = await manufacturesAPI.getAll();
+      console.log("🚀 ~ load ~ list:", list);
       setRows(list ?? []);
     } catch (e) {
       console.error(e);
@@ -290,11 +292,11 @@ export default function ManufactureHome() {
                             <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
                               <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                                 <Calendar className="h-3 w-3" />
-                                Start: {toDateStr(r.startDate)}
+                                Start: {DateFormate(r.startDate)}
                               </div>
                               <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-md border border-purple-200">
                                 <Calendar className="h-3 w-3" />
-                                End: {toDateStr(r.endDate)}
+                                End: {DateFormate(r.endDate)}
                               </div>
                             </div>
 
@@ -392,14 +394,14 @@ export default function ManufactureHome() {
                           <TableCell className=" px-4">
                             <div className="flex items-center gap-1 text-sm text-gray-700">
                               <Calendar className="h-3 w-3 text-gray-500" />
-                              {toDateStr(r.startDate)}
+                              {DateFormate(r.startDate)}
                             </div>
                           </TableCell>
 
                           <TableCell className=" px-4">
                             <div className="flex items-center gap-1 text-sm text-gray-700">
                               <Calendar className="h-3 w-3 text-gray-500" />
-                              {toDateStr(r.endDate)}
+                              {DateFormate(r.endDate)}
                             </div>
                           </TableCell>
 
@@ -541,21 +543,4 @@ function StatCard({
       </div>
     </div>
   );
-}
-
-function toDateStr(v: any) {
-  try {
-    if (!v) return "-";
-    if (v?.toDate) return v.toDate().toISOString().slice(0, 10);
-    if (typeof v === "object" && "seconds" in v)
-      return new Date(
-        v.seconds * 1000 + Math.floor((v.nanoseconds ?? 0) / 1_000_000)
-      )
-        .toISOString()
-        .slice(0, 10);
-    if (typeof v === "string") return v.slice(0, 10);
-    return "-";
-  } catch {
-    return "-";
-  }
 }

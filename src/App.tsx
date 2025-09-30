@@ -1,8 +1,8 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
+import ArticlePage from "./Components/test2";
 
 // 🔹 Lazy load components
 const Login = lazy(() => import("./Components/Auth/Login"));
@@ -35,9 +35,9 @@ function App() {
   ]);
 
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen ">
       {/* 🔹 Suspense fallback loader */}
-      <Suspense
+      {/* <Suspense
         fallback={
           <div className="flex items-center justify-center h-screen">
             Loading...
@@ -53,7 +53,8 @@ function App() {
           )}
         </Routes>
       </Suspense>
-      <ToastContainer />
+      <ToastContainer /> */}
+      <ArticlePage />
     </div>
   );
 }

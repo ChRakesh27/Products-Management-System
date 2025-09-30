@@ -8,6 +8,8 @@ import { useLoading } from "../../context/LoadingContext";
 import { Button } from "../ui/button";
 
 import { Info } from "lucide-react";
+import DateFormate from "../../Constants/DateFormate";
+import type { TimestampModel } from "../../Model/Date";
 import { Badge } from "../ui/badge";
 import {
   Card,
@@ -49,11 +51,36 @@ type ProductLite = { id: string; name: string };
 
 // ── Utils ──────────────────────────────────────────────────────────────
 const fmt = (d: Date) =>
-  d.toLocaleDateString("en-GB", {
+  d.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit",
     month: "short",
     year: "2-digit",
   });
+
+// IST-safe YYYY-MM-DD (no UTC drift)
+const dateKey = (d: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d);
+
+const toSafeDate = (v: unknown): Date | null => {
+  if (!v) return null;
+  try {
+    // Firestore Timestamp
+    if (
+      v instanceof Timestamp ||
+      (typeof v === "object" && v !== null && "toDate" in (v as any))
+    ) {
+      const d = (v as Timestamp).toDate();
+      return isNaN(d.getTime()) ? null : d;
+    }
+    if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+    if (typeof v === "string" || typeof v === "number") {
+      const d = new Date(v as any);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  } catch {}
+  return null;
+};
 
 const blankEntry: DailyEntry = { target: 0, output: 0, remark: "" };
 
@@ -106,7 +133,7 @@ function extractEntry(
 }
 
 // ── Component ─────────────────────────────────────────────────────────
-export default function ProductionData({ poData }) {
+export default function ProductionData({ poData, workOrder }) {
   const today = new Date();
   const [month, setMonth] = useState<number>(today.getMonth());
   const [year, setYear] = useState<number>(today.getFullYear());
@@ -119,20 +146,38 @@ export default function ProductionData({ poData }) {
   const [drawerData, setDrawerData] = useState<DailyEntry>({ ...blankEntry });
   const [saving, setSaving] = useState(false);
   const { setLoading } = useLoading();
-  const days = useMemo(() => monthDays(year, month), [month, year]);
+
+  const monthDates = useMemo(() => monthDays(year, month), [year, month]);
+
+  const poStart = useMemo<Date | null>(() => {
+    return toSafeDate(workOrder?.startDate);
+  }, [workOrder?.startDate]);
+
+  // Compare via IST keys to avoid timezone issues
+  const days = useMemo(() => {
+    if (!poStart) return monthDates;
+    const startKey = dateKey(poStart);
+    return monthDates.filter((d) => {
+      const k = dateKey(d);
+      return k >= startKey || !!dayMap[k];
+    });
+  }, [monthDates, poStart, dayMap]);
+
   async function ensureMonthLoaded(productId: string | undefined) {
     try {
       setLoading(true);
-      const res = await getDailyDocByCurrentMonth(); // keep your signature
+      const res = await getDailyDocByCurrentMonth();
       const next: DayMap = {};
 
       for (const existing of res) {
-        const date = (existing.date as Timestamp).toDate();
-        const key = date.toISOString().slice(0, 10);
+        const d = toSafeDate(existing.date); // Firestore Timestamp or Date
+        if (!d) continue;
+        const key = dateKey(d);
 
         const entry = extractEntry(existing, productId);
         if (entry) next[key] = entry;
       }
+
       setDayMap(next);
     } catch (e) {
       console.error("fetch month failed", e);
@@ -142,15 +187,20 @@ export default function ProductionData({ poData }) {
   }
 
   useEffect(() => {
-    if (!selectedProduct?.id) {
-      return;
-    }
+    if (!selectedProduct?.id) return;
     ensureMonthLoaded(selectedProduct.id);
   }, [selectedProduct?.id, month, year]);
-
+  function stripTime(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
   // Open drawer for a date
   function openDrawerFor(date: Date) {
-    const key = date.toISOString().slice(0, 10);
+    const givenDate = stripTime(new Date(date));
+    const today = stripTime(new Date());
+    if (givenDate > today) {
+      return;
+    }
+    const key = dateKey(date);
     setDrawerData({ ...(dayMap[key] ?? { ...blankEntry }) });
     setDrawerDate(date);
     setDrawerOpen(true);
@@ -160,8 +210,9 @@ export default function ProductionData({ poData }) {
     if (!drawerDate) return;
     try {
       setSaving(true);
-      const ts = Timestamp.fromDate(drawerDate);
+      const ts = Timestamp.fromDate(drawerDate); // stores the same instant; reading via dateKey keeps IST
       const fieldKey = selectedProduct.id;
+
       await upsertDailyProductionForDate(
         ts,
         fieldKey,
@@ -174,7 +225,8 @@ export default function ProductionData({ poData }) {
         products
       );
 
-      const key = drawerDate.toISOString().slice(0, 10);
+      // ✅ use IST key so 12 Sep stays 12 Sep
+      const key = dateKey(drawerDate);
       setDayMap((m) => ({ ...m, [key]: { ...drawerData } }));
       setDrawerOpen(false);
     } catch (e) {
@@ -239,6 +291,7 @@ export default function ProductionData({ poData }) {
           />
         </div>
       </div>
+
       <ProductOrderCard
         item={{
           totalAmount: selectedProduct?.totalAmount || "",
@@ -252,8 +305,11 @@ export default function ProductionData({ poData }) {
           description: selectedProduct?.description || "",
           quantityOrdered: selectedProduct?.quantityOrdered || "",
           color: selectedProduct?.color || "",
+          startDate: workOrder.startDate,
+          endDate: workOrder.endDate,
         }}
       />
+
       {/* Grid */}
       <div className="overflow-auto border border-gray-200 rounded">
         <Table>
@@ -267,7 +323,8 @@ export default function ProductionData({ poData }) {
           </TableHeader>
           <TableBody>
             {days.map((d) => {
-              const key = d.toISOString().slice(0, 10);
+              // ✅ use IST key for lookup
+              const key = dateKey(d);
               const entry = dayMap[key];
               const remarkPreview = entry?.remark ? entry.remark.trim() : "";
 
@@ -391,6 +448,8 @@ type ProductOrder = {
   gstPct?: number; // e.g. 12
   gst?: number | string; // e.g. "12%" or 12
   description?: string;
+  startDate: TimestampModel;
+  endDate: TimestampModel;
 };
 
 const colorDot = (color: string) => {
@@ -456,9 +515,23 @@ function ProductOrderCard({ item }: { item: ProductOrder }) {
             </CardDescription>
           </div>
 
-          <div className="text-right shrink-0">
-            <div className="text-sm text-muted-foreground"> Delivery Date</div>
-            <div className="text-base font-semibold">{"30/09/2025"}</div>
+          <div className="flex items-center gap-10">
+            <div className="text-right shrink-0">
+              <div className="text-sm text-muted-foreground"> Start Date</div>
+              <div className="text-base font-semibold">
+                {" "}
+                {DateFormate(item.startDate)}
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-sm text-muted-foreground">
+                {" "}
+                Delivery Date
+              </div>
+              <div className="text-base font-semibold">
+                {DateFormate(item.endDate)}
+              </div>
+            </div>
           </div>
         </div>
 
